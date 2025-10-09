@@ -1,0 +1,104 @@
+@php
+    use Illuminate\Support\Str;
+@endphp
+
+@extends('layouts.admin')
+
+@section('content')
+    <div class="row mb-4">
+        <h2 class="mb-3">Tiempo de Espera para Atención</h2>
+
+        @if ($hayCriticos)
+            <div class="alert alert-warning text-center">
+                <h2>Pacientes ESI 1 presentes. Umbrales de espera ajustados dinámicamente.</h2>
+            </div>
+        @endif
+
+        <div class="row mb-3">
+            @foreach ($categorias as $categoria)
+                @php
+                    $ocupacion = $categoria['cupo'] > 0 ? ($categoria['total'] / $categoria['cupo']) * 100 : 0;
+                    $ocupacionColor = $ocupacion > 100 ? 'danger' : 'light';
+                @endphp
+                <div class="col-md-2">
+                    <div class="card text-center bg-{{ $categoria['color'] }} text-white">
+                        <div class="card-body p-2">
+                            <strong class="fs-5">{{ $categoria['codigo'] }}</strong><br>
+                            <span style="font-size: 4em;">
+                                {{ $categoria['total'] }} / {{ $categoria['cupo'] }}
+                            </span>
+                            @if ($ocupacion > 100)
+                                <div class="mt-1 badge bg-danger"> Sobre capacidad</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Panel detallado por estados -->
+        <div class="row" id="panel-categorias">
+            @foreach ($categorias as $categoria)
+                <div class="col-md-4 mb-4">
+                    <div class="card border-{{ $categoria['color'] }}" data-categoria="{{ $categoria['codigo'] }}">
+
+                        <!-- Card Header -->
+                        <div class="card-header text-white bg-{{ $categoria['color'] }}">
+                            <strong>{{ $categoria['codigo'] . ' - ' . $categoria['nombre'] }}</strong>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body bg-white">
+                            <div class="row">
+                                @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
+                                    @php
+                                        $estadoSlug = \Illuminate\Support\Str::slug($estadoNombre);
+                                        $espera = $estadoData['promedio'];
+                                        $umbral = $categoria['umbrales'];
+                                        $color =
+                                            $espera > $umbral
+                                                ? 'danger'
+                                                : ($espera > $umbral * 0.7
+                                                    ? 'warning'
+                                                    : 'success');
+                                    @endphp
+
+                                    <div class="col-md-12 mb-3">
+                                        <div class="info-box border border-{{ $categoria['color'] }} bg-white text-dark{{ $categoria['color'] }}"
+                                            id="card-{{ Str::slug($categoria['codigo']) }}-{{ $estadoSlug }}">
+
+                                            <span
+                                                class="info-box-icon border-end border-{{ $categoria['color'] }} bg-white text-{{ $categoria['color'] }}">
+                                                <i class="{{ $estadoData['icono'] }}"></i>
+                                            </span>
+
+                                            <div class="info-box-content">
+                                                <span
+                                                    class="info-box-text fw-bold text-uppercase fw-semibold fs-4">{{ $estadoNombre }}</span>
+                                                <span class="info-box-number cantidad-{{ $estadoSlug }} contador fs-3">
+                                                    {{ $estadoData['cantidad'] }} pacientes
+                                                </span>
+
+                                                <span class="fs-5 text-{{ $color }}">{{ $espera }} min</span>
+
+                                                <div class="progress mt-2">
+                                                    <div class="progress-bar bg-{{ $categoria['color'] }}"
+                                                        style="width: {{ min($espera * 2, 100) }}%">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endsection
+
+
+
+
