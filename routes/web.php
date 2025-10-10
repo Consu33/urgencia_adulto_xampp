@@ -77,7 +77,6 @@ Route::get('/admin/pacientes/{id}/edit', [App\Http\Controllers\PacienteControlle
 Route::put('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::class, 'update'])->name('admin.pacientes.update')->middleware('auth', 'can:admin.pacientes.update');
 Route::delete('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::class, 'destroy'])->name('admin.pacientes.destroy')->middleware('auth', 'can:admin.pacientes.destroy');
 
-
 //rutas de atenciones para pacientes ya en la bd
 Route::get('/admin/atenciones/create/{paciente_id}', [App\Http\Controllers\AtencionController::class, 'create'])->name('admin.atenciones.create')->middleware('auth', 'can:admin.atenciones.create');
 Route::post('/admin/atenciones', [App\Http\Controllers\AtencionController::class, 'store'])->name('admin.atenciones.store')->middleware('auth', 'can:admin.atenciones.store');
@@ -88,6 +87,7 @@ Route::put('/admin/pacientes/{paciente}/actualizar-datos', [PacienteController::
 Route::get('/admin/condition', [App\Http\Controllers\EstadoPacienteController::class, 'condition'])->name('admin.pacientes.condition')->middleware('auth', 'can:admin.pacientes.condition');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.updateCategory')->middleware('auth', 'can:admin.pacientes.updateCategory');
 Route::get('/admin/panel', [App\Http\Controllers\EstadoPacienteController::class, 'index'])->name('admin.panel.index')->middleware('auth', 'can:admin.panel.index');
+Route::get('/admin/panel/dinamico', [App\Http\Controllers\EstadoPacienteController::class, 'panelDinamico'])->name('admin.panel.dinamico')->middleware('auth', 'can:admin.panel.index');
 
 
 

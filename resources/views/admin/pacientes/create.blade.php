@@ -305,9 +305,29 @@
         return dv === dvCalc;
     }
 
+    function formatearRut(rut) {
+        rut = rut.replace(/\./g, '').replace(/-/g, '');
+        if (rut.length < 2) return rut;
+
+        const cuerpo = rut.slice(0, -1);
+        const dv = rut.slice(-1).toUpperCase();
+        return cuerpo + '-' + dv;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const rutInput = document.getElementById('rut');
         const errorSpan = document.getElementById('rut-error');
+
+        const nombreInput = document.getElementById('nombre');
+        const apellidoInput = document.getElementById('apellido');
+
+        nombreInput.addEventListener('input', function() {
+            nombreInput.value = nombreInput.value.toUpperCase();
+        });
+
+        apellidoInput.addEventListener('input', function() {
+            apellidoInput.value = apellidoInput.value.toUpperCase();
+        });
 
         rutInput.addEventListener('input', function() {
             const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
@@ -322,6 +342,13 @@
             } else {
                 errorSpan.style.display = 'none';
                 rutInput.classList.remove('is-invalid');
+            }
+        });
+
+        rutInput.addEventListener('blur', function() {
+            const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
+            if (tipo === 'rut') {
+                rutInput.value = formatearRut(rutInput.value);
             }
         });
 

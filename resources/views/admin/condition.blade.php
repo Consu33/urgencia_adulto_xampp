@@ -217,7 +217,7 @@
                         function actualizarColor(select) {
                             const categoriaId = select.value;
                             const color = categoriaColores[categoriaId] || 'light';
-
+                             // Elimina clases de fondo anteriores
                             select.classList.forEach(cls => {
                                 if (cls.startsWith('bg-')) select.classList.remove(cls);
                             });

@@ -12,114 +12,8 @@ class EstadoPacienteController extends Controller
 {
     public function index()
     {
-        $categorias = Categoria::all();
-        $estadosClave = [
-            'En espera de atencion',
-            'En atencion',
-        ];
-
-        $cupos = [
-            'ESI 1' => 2,
-            'ESI 2' => 8,
-            'ESI 3' => 50,
-            'ESI 4' => 7,
-            'ESI 5' => 4,
-            'ESPERA-CAMA' => 35,
-        ];
-
-        $umbralesBase = [
-            'ESI 1' => 0,
-            'ESI 2' => 5,
-            'ESI 3' => 15,
-            'ESI 4' => 30,
-            'ESI 5' => 45,
-            'ESPERA-CAMA' => 60,
-        ];
-
-        $iconos = [
-            'En espera de atencion' => 'bi bi-hourglass-split',
-            'En atencion' => 'bi bi-heart-pulse-fill',
-            'En espera de cama' => 'fas fa-bed',
-        ];
-
-        $pacientes = Paciente::with(['categoria', 'estado'])
-            ->whereHas('estado', function ($query) {
-                $query->where('nombre', '!=', 'Dado de Alta');
-            })
-            ->get();
-
-        $hayCriticos = $pacientes->where('categoria.codigo', 'ESI 1')->count() > 0;
-
-        $umbrales = collect($umbralesBase)->map(function ($valor, $codigo) use ($hayCriticos) {
-            return $hayCriticos ? $valor + 20 : $valor;
-        })->toArray();
-
-        $data = [];
-
-        foreach ($categorias as $categoria) {
-            if ($categoria->codigo === 'ESI 6') continue;
-
-            $categoriaPacientes = $pacientes->where('categoria_id', $categoria->id);
-            $totalPacientes = $categoriaPacientes->count();
-
-            $estados = collect($estadosClave)->mapWithKeys(function ($estadoNombre) use ($categoriaPacientes, $iconos) {
-                $estadoPacientes = $categoriaPacientes->where('estado.nombre', $estadoNombre);
-
-                // Filtrar según estado para calcular tiempo correcto
-                $tiempoPromedio = 0;
-
-                if ($estadoNombre === 'En espera de atencion') {
-                    $tiempoPromedio = $estadoPacientes
-                        ->map(fn($p) => now()->diffInMinutes($p->created_at))
-                        ->avg();
-                }
-                
-                return [
-                    $estadoNombre => [
-                        'cantidad' => $estadoPacientes->count(),
-                        'promedio' => round($tiempoPromedio ?? 0),
-                        'icono' => $iconos[$estadoNombre] ?? 'fas fa-question-circle',
-                    ],
-                ];
-
-            })->toArray();
-
-            $data[] = [
-                'codigo' => $categoria->codigo,
-                'nombre' => $categoria->nombre,
-                'color' => str_replace('bg-', '', $categoria->color),
-                'cupo' => $cupos[$categoria->codigo] ?? 0,
-                'total' => $totalPacientes,
-                'umbrales' => $umbrales[$categoria->codigo] ?? 30,
-                'estados' => $estados,
-            ];
-        }
-
-        // Categoría especial: espera de cama
-        $esperaCamaPacientes = $pacientes->where('estado.nombre', 'En espera de cama');
-
-        $tiempoPromedioCama = $esperaCamaPacientes
-            ->map(fn($p) => now()->diffInMinutes($p->created_at))
-            ->avg();
-
-        $data[] = [
-            'codigo' => 'ESPERA-CAMA',
-            'nombre' => 'Pacientes en espera de cama',
-            'color' => 'secondary',
-            'icono' => 'fas fa-procedures',
-            'cupo' => $cupos['ESPERA-CAMA'],
-            'total' => $esperaCamaPacientes->count(),
-            'umbrales' => $umbrales['ESPERA-CAMA'],
-            'estados' => [
-                'En espera de cama' => [
-                    'cantidad' => $esperaCamaPacientes->count(),
-                    'promedio' => round($tiempoPromedioCama ?? 0),
-                    'icono' => 'fas fa-procedures',
-                ]
-            ]
-        ];
-
-        return view('admin.panel', ['categorias' => $data, 'hayCriticos' => $hayCriticos]);
+        $panel = $this->calcularPanel();
+        return view('admin.panel', $panel);
     }
 
     public function getPacienteJson($id)
@@ -186,4 +80,117 @@ class EstadoPacienteController extends Controller
 
         return in_array($color, $validColors) ? $color : ($color === 'orange' ? 'orange' : 'secondary');
     }
+
+    public function panelDinamico()
+    {
+        $panel = $this->calcularPanel();
+        return view('admin.panel.parcial', $panel);
+
+    }
+
+    private function calcularPanel()
+    {
+        $categorias = Categoria::all();
+        $estadosClave = [
+            'En espera de atencion',
+            'En atencion',
+        ];
+
+        $cupos = [
+            'ESI 1' => 2,
+            'ESI 2' => 8,
+            'ESI 3' => 50,
+            'ESI 4' => 7,
+            'ESI 5' => 4,
+            'ESPERA-CAMA' => 35,
+        ];
+
+        $umbralesBase = [
+            'ESI 1' => 0,
+            'ESI 2' => 5,
+            'ESI 3' => 15,
+            'ESI 4' => 30,
+            'ESI 5' => 45,
+            'ESPERA-CAMA' => 60,
+        ];
+
+        $iconos = [
+            'En espera de atencion' => 'bi bi-hourglass-split',
+            'En atencion' => 'bi bi-heart-pulse-fill',
+            'En espera de cama' => 'fas fa-bed',
+        ];
+
+        $pacientes = Paciente::with(['categoria', 'estado'])
+            ->whereHas('estado', fn($q) => $q->where('nombre', '!=', 'Dado de Alta'))
+            ->get();
+
+        $hayCriticos = $pacientes->where('categoria.codigo', 'ESI 1')->count() > 0;
+
+        $umbrales = collect($umbralesBase)->map(function ($valor, $codigo) use ($hayCriticos) {
+            return $hayCriticos ? $valor + 20 : $valor;
+        })->toArray();
+
+        $data = [];
+
+        foreach ($categorias as $categoria) {
+            if ($categoria->codigo === 'ESI 6') continue;
+
+            $categoriaPacientes = $pacientes->where('categoria_id', $categoria->id);
+            $totalPacientes = $categoriaPacientes->count();
+
+            $estados = collect($estadosClave)->mapWithKeys(function ($estadoNombre) use ($categoriaPacientes, $iconos) {
+                $estadoPacientes = $categoriaPacientes->where('estado.nombre', $estadoNombre);
+                $tiempoPromedio = 0;
+
+                if ($estadoNombre === 'En espera de atencion') {
+                    $tiempoPromedio = $estadoPacientes
+                        ->map(fn($p) => now()->diffInMinutes(optional($p->atenciones()->latest()->first())->fecha_atencion))
+                        ->avg();
+                }
+
+                return [
+                    $estadoNombre => [
+                        'cantidad' => $estadoPacientes->count(),
+                        'promedio' => round($tiempoPromedio ?? 0),
+                        'icono' => $iconos[$estadoNombre] ?? 'fas fa-question-circle',
+                    ],
+                ];
+            })->toArray();
+
+            $data[] = [
+                'codigo' => $categoria->codigo,
+                'nombre' => $categoria->nombre,
+                'color' => str_replace('bg-', '', $categoria->color),
+                'cupo' => $cupos[$categoria->codigo] ?? 0,
+                'total' => $totalPacientes,
+                'umbrales' => $umbrales[$categoria->codigo] ?? 30,
+                'estados' => $estados,
+            ];
+        }
+
+        $esperaCamaPacientes = $pacientes->where('estado.nombre', 'En espera de cama');
+        $tiempoPromedioCama = $esperaCamaPacientes
+            ->map(fn($p) => now()->diffInMinutes($p->created_at))
+            ->avg();
+
+        $data[] = [
+            'codigo' => 'ESPERA-CAMA',
+            'nombre' => 'Pacientes en espera de cama',
+            'color' => 'secondary',
+            'icono' => 'fas fa-procedures',
+            'cupo' => $cupos['ESPERA-CAMA'],
+            'total' => $esperaCamaPacientes->count(),
+            'umbrales' => $umbrales['ESPERA-CAMA'],
+            'estados' => [
+                'En espera de cama' => [
+                    'cantidad' => $esperaCamaPacientes->count(),
+                    'promedio' => round($tiempoPromedioCama ?? 0),
+                    'icono' => 'fas fa-procedures',
+                ]
+            ]
+        ];
+
+        return ['categorias' => $data, 'hayCriticos' => $hayCriticos];
+    }
+    
 }

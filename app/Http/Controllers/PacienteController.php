@@ -6,14 +6,13 @@ use App\Models\Paciente;
 use App\Models\Estado;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
-use App\Events\PatientStatusUpdated;
 use Illuminate\Support\Facades\Auth;
 use App\Rules\RutChileno;
 use App\Models\EliminacionPaciente;
 use App\Models\Atencion;
 use Illuminate\Validation\Rule;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
+use App\Helpers\RutHelper;
+
 
 
 class PacienteController extends Controller
@@ -35,9 +34,13 @@ class PacienteController extends Controller
 
     public function store(Request $request)
     {
+        // Validación y creación de paciente nuevo
+        $tipo = $request->input('identificacion_tipo');
+        $rutNormalizado = $tipo === 'rut' ? RutHelper::normalizar($request->rut) : $request->rut;
+
         // Buscar si el paciente existe por el rut, si lo encuentra y está activo, lo carga con sus relaciones
         $pacienteExistente = Paciente::with('atenciones', 'estado')
-            ->where('rut', $request->rut)
+            ->where('rut', $rutNormalizado)
             ->first();
         //Si el paciente existe, revisa si está inactivo o tiene atención activa
         if ($pacienteExistente) {
@@ -89,10 +92,7 @@ class PacienteController extends Controller
                 ->with('icono', 'info')
                 ->with('mensaje', 'Este paciente ya está registrado. ¿Deseas agregar una nueva atención?');
         }            
-
-        // Validación y creación de paciente nuevo
-        $tipo = $request->input('identificacion_tipo');
-
+        
         $rules = [
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
@@ -108,14 +108,15 @@ class PacienteController extends Controller
             $rules['rut'] = new RutChileno;
         }
 
+        $request->merge(['rut' => $rutNormalizado]); // ← Actualiza el valor antes de validar
         $request->validate($rules);
 
         $estadoInicial = Estado::where('nombre', 'ingresado')->first();
 
         $paciente = new Paciente();
-        $paciente->nombre = $request->nombre;
-        $paciente->apellido = $request->apellido;
-        $paciente->rut = $request->rut;
+        $paciente->nombre = strtoupper($request->nombre);
+        $paciente->apellido = strtoupper($request->apellido);
+        $paciente->rut = $rutNormalizado;
         $paciente->identificacion_tipo = $tipo;
         $paciente->estado_id = $estadoInicial?->id;
         $paciente->save();
