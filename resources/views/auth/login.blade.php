@@ -134,7 +134,7 @@
                             <div class="form-group">
                                 <label for="email" class="col-form-label text-md-end">Usuario</label>
                                 <div class="">
-                                    <input placeholder="RUT sin punto ni guión con DV" id="rut" type="text" class="form-control @error('rut') is-invalid @enderror" name="rut" value="{{ old('rut') }}" required autocomplete="rut" autofocus>
+                                    <input placeholder="RUT sin punto con guión con DV" id="rut" type="text" class="form-control @error('rut') is-invalid @enderror" name="rut" value="{{ old('rut') }}" required autocomplete="rut" autofocus>
                                     @error('rut')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -150,7 +150,7 @@
                             <div class="form-group">
                                 <label for="password" class="col-form-label text-md-end">Contraseña</label>
                                 <div class="">
-                                    <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                                    <input placeholder="máximo 8 caracteres" id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
                                     @error('password')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

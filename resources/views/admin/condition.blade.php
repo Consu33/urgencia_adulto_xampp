@@ -127,7 +127,8 @@
                                                         <div class="col-md-12">
                                                             <div class="form-group">
                                                                 <label>Nombre y Apellido</label>
-                                                                <input type="text" value="{{ $paciente->nombre. ' ' . $paciente->apellido }}"
+                                                                <input type="text"
+                                                                    value="{{ $paciente->nombre . ' ' . $paciente->apellido }}"
                                                                     class="form-control" disabled>
                                                             </div>
                                                         </div>
@@ -149,27 +150,21 @@
                     </table>
 
                     {{-- Scripts --}}
-
                     <script>
-                        // Define una funcion que se ejecuta cuando se cambia de estado o categoria de un paciente
                         function actualizarEstado(pacienteId) {
-                            //Obtiene los elementos "select" de categoria y estado
                             const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
                             const estadoSelect = document.getElementById(`estado-${pacienteId}`);
                             const feedback = document.getElementById(`feedback-${pacienteId}`);
 
-                            //extrae los valores seleccionado por usuario
                             const categoriaId = categoriaSelect.value;
                             const estadoId = estadoSelect.value;
 
-                            // Bloquear campos y mostrar spinner
                             categoriaSelect.disabled = true;
                             estadoSelect.disabled = true;
                             feedback.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span>`;
 
-
-                            //envia una solicitud POST al backend con los datos seleccionados, incluyendo el token CSRF para seguridad
                             fetch(`/admin/pacientes/${pacienteId}/update-category`, {
+                                //fetch({{ url('admin/pacientes') }}/${pacienteId}/update-category, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -180,29 +175,25 @@
                                         estado_id: estadoId
                                     })
                                 })
-                                //Muestra un mensaje de exito y lo borra despues de 3 segundos
                                 .then(response => {
                                     if (!response.ok) throw new Error('Error en la actualización');
                                     return response.json();
                                 })
-                                .then(() => {
-                                    document.getElementById(`feedback-${pacienteId}`).innerHTML =
-                                        `<span class="text-success">✔️ Actualizado</span>`;
+                                .then(data => {
+                                    // ✅ Puedes mostrar el tiempo estimado si lo deseas
+                                    const mensaje = `✔️ Actualizado (${data.tiempoEstimado} min estimado)`;
+                                    feedback.innerHTML = `<span class="text-success">✔️ Actualizado</span>`;
                                     setTimeout(() => {
-                                        document.getElementById(`feedback-${pacienteId}`).innerHTML = '';
+                                        feedback.innerHTML = '';
                                     }, 3000);
                                 })
-                                //si ocurre un error, muestra un mensaje de error
                                 .catch(error => {
-                                    document.getElementById(`feedback-${pacienteId}`).innerHTML =
-                                        `<span class="text-danger">❌ Error</span>`;
+                                    feedback.innerHTML = `<span class="text-danger">❌ Error</span>`;
                                 })
                                 .finally(() => {
-                                    // Desbloquear campos
                                     categoriaSelect.disabled = false;
                                     estadoSelect.disabled = false;
                                 });
-
                         }
                     </script>
 
@@ -217,7 +208,7 @@
                         function actualizarColor(select) {
                             const categoriaId = select.value;
                             const color = categoriaColores[categoriaId] || 'light';
-                             // Elimina clases de fondo anteriores
+                            // Elimina clases de fondo anteriores
                             select.classList.forEach(cls => {
                                 if (cls.startsWith('bg-')) select.classList.remove(cls);
                             });

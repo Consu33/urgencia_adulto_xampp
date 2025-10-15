@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre',50);
             $table->string('apellido',50);
-            $table->string('rut', 12)->unique();
+            $table->string('rut', 10)->unique();
 
             $table->unsignedBigInteger('user_id')->unique();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

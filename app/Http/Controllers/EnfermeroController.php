@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\RutChileno;
+use App\Helpers\RutHelper;
 
 class EnfermeroController extends Controller
 {
@@ -28,26 +29,28 @@ class EnfermeroController extends Controller
     
     public function store(Request $request)
     {
+        $rutNormalizado = RutHelper::normalizar($request->rut);
+        $request->merge(['rut' => $rutNormalizado]);
+        
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => ['required', 'max:12', 'unique:users,rut', new RutChileno],
+            'rut' => ['required', 'max:10', 'unique:users,rut', new RutChileno],
             'password' => 'required|min:8|confirmed',
         ]);     
         
         $usuario = new User();
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
         $usuario->password = Hash::make($request->password);
         $usuario->save();     
         
         $enfermero = new Enfermero();
         $enfermero->user_id = $usuario->id;
-        $enfermero->nombre = $request->nombre;
-        $enfermero->apellido = $request->apellido;
-        $enfermero->rut = $request->rut;
-        $enfermero->estado_id = Estado::where('nombre', 'ingresado')->first()?->id;
+        $enfermero->nombre = strtoupper($request->nombre);
+        $enfermero->apellido = strtoupper($request->apellido);
+        $enfermero->rut = $rutNormalizado;
         $enfermero->save();
 
         $usuario->assignRole('enfermero');
@@ -80,24 +83,25 @@ class EnfermeroController extends Controller
         //Busca el enfermero por ID y lanza una excepción si no se encuentra
         //Actualiza los datos del enfermero y del usuario asociado
         //Si se proporciona una nueva contraseña, la actualiza
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $enfermero = Enfermero::find($id);
 
         $usuario = User::findOrFail($id);
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => 'required|max:12|unique:enfermeros,rut,' . $enfermero->id,
+            'rut' => 'required|max:10|unique:enfermeros,rut,' . $enfermero->id,
             'password' => 'nullable|min:8|confirmed',
         ]);  
 
-        $enfermero->nombre = $request->nombre;
-        $enfermero->apellido = $request->apellido;
+        $enfermero->nombre = strtoupper($request->nombre);
+        $enfermero->apellido = strtoupper($request->apellido);
         $enfermero->rut = $request->rut;
         $enfermero->save();
 
         $usuario = User::find($enfermero->user_id);
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
         if($request->filled('password')) {
             // Solo actualiza la contraseña si se ha proporcionado una nueva

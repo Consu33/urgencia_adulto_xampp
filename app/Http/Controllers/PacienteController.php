@@ -99,7 +99,7 @@ class PacienteController extends Controller
             'identificacion_tipo' => 'required|in:rut,pasaporte,ficha',
             'rut' => [
                 'required',
-                'max:12',
+                'max:10',
                 Rule::unique('pacientes', 'rut'),
             ],
         ];
@@ -112,6 +112,7 @@ class PacienteController extends Controller
         $request->validate($rules);
 
         $estadoInicial = Estado::where('nombre', 'ingresado')->first();
+        $categoriaInicial = Categoria::where('nombre', 'SIN CATEGORIZAR')->first();
 
         $paciente = new Paciente();
         $paciente->nombre = strtoupper($request->nombre);
@@ -119,6 +120,7 @@ class PacienteController extends Controller
         $paciente->rut = $rutNormalizado;
         $paciente->identificacion_tipo = $tipo;
         $paciente->estado_id = $estadoInicial?->id;
+        $paciente->categoria_id = $categoriaInicial?->id;
         $paciente->save();
 
         Atencion::create([
@@ -257,4 +259,5 @@ class PacienteController extends Controller
             ->with('mensaje', 'Registro Eliminado!')
             ->with('icono', 'warning');
     }
+    
 }

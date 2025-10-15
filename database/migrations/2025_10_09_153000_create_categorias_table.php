@@ -21,6 +21,7 @@ return new class extends Migration
 
         // Insertar datos iniciales
         DB::table('categorias')->insert([
+            ['codigo' => 'SIN CATEGORIZAR', 'nombre' => 'SIN CATEGORIZAR', 'color' => 'bg-light', 'orden' => 0, 'created_at' => now(), 'updated_at' => now()],
             ['codigo' => 'ESI 1', 'nombre' => 'Riesgo Vital Emergencia', 'color' => 'bg-danger', 'orden' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['codigo' => 'ESI 2', 'nombre' => 'Paciente de Alta Complejidad', 'color' => 'bg-orange', 'orden' => 2, 'created_at' => now(), 'updated_at' => now()],
             ['codigo' => 'ESI 3', 'nombre' => 'Paciente de Mediano Riesgo', 'color' => 'bg-warning', 'orden' => 3, 'created_at' => now(), 'updated_at' => now()],

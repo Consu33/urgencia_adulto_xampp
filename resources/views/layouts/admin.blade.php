@@ -73,8 +73,8 @@
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
-            <a href="index3.html" class="brand-link">
-                <img src="{{ url('dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo"
+            <a href="/admin" class="brand-link">
+                <img src="{{ url('/assets/img/gallery/logo gobiernodechile.jpg') }}" alt=""
                     class="brand-image img-circle elevation-3" style="opacity: .8">
                 <span class="brand-text font-weight-light">Urgencia Adulto</span>
             </a>
@@ -262,7 +262,7 @@
                                         <li class="nav-item">
                                             <a href="{{ url('admin/condition') }}" class="nav-link active">
                                                 <i class="far fa-circle nav-icon"></i>
-                                                <p>Pacientes Ingresados</p>
+                                                <p>Pacientes a Categorizar</p>
                                             </a>
                                         </li>
                                     @endcan
@@ -421,6 +421,18 @@
                     .show();
             });
 
+            
+
+        });
+    </script>
+    // Manejo del evento pageshow para detectar navegación con el botón atrás
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || performance.navigation.type === 2) {
+                // Si la página se carga desde la caché (botón atrás)
+                $('#global-spinner').hide();
+                $('#blur-overlay').hide(); // si usas un overlay visual
+            }
         });
     </script>
 

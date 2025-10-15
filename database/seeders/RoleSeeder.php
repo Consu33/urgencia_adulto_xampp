@@ -79,15 +79,17 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.pacientes.update'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
         Permission::create(['name' => 'admin.pacientes.confirmDelete'])->syncRoles([$administrador, $adminUrgencia, $adminEnfermero]);
         Permission::create(['name' => 'admin.pacientes.destroy'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+        Permission::create(['name' => 'admin.pacientes.update-category'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+        Permission::create(['name' => 'admin.pacientes.condition'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+        Permission::create(['name' => 'admin.pacientes.updateCategory'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+        Permission::create(['name' => 'admin.panel.index'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+        Permission::create(['name' => 'admin.panel.dinamico'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
+
 
         //Rutas para el administrador - EstadoPaciente
         Permission::create(['name' => 'admin.atenciones.create'])->syncRoles([$administrador, $admision, $adminUrgencia, $adminEnfermero]);
         Permission::create(['name' => 'admin.atenciones.store'])->syncRoles([$administrador, $admision, $adminUrgencia, $adminEnfermero]);
 
-        //Rutas para el administrador - EstadoPaciente
-
-        Permission::create(['name' => 'admin.pacientes.condition'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
-        Permission::create(['name' => 'admin.pacientes.updateCategory'])->syncRoles([$administrador, $enfermero, $adminUrgencia, $adminEnfermero]);
-        Permission::create(['name' => 'admin.panel.index'])->syncRoles([$administrador, $admision, $enfermero, $adminUrgencia, $adminEnfermero]);
+        
     }
 }

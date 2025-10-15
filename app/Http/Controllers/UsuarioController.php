@@ -7,12 +7,14 @@ use App\Models\Estado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\RutChileno;
+use App\Helpers\RutHelper;
 
 class UsuarioController extends Controller
 {
     public function index(){
         //Del modelo usuario traera todos los datos que seran almacenados en esta variable
         //En este caso se asume que se mostraran las admisiones de los usuarios
+        $usuarios = User::with('roles')->get();
         $usuarios = User::all();
         return view('admin.usuarios.index', compact('usuarios'));
     }
@@ -24,23 +26,25 @@ class UsuarioController extends Controller
 
     public function store(Request $request){
         //Valida los datos del formulario
+        dd($request->all());
+
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $request->validate([
             'name' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => ['required', 'max:12', 'unique:users,rut', new RutChileno],
+            'rut' => ['required', 'max:10', 'unique:users,rut', new RutChileno],
             'password' => 'required|min:8|confirmed',
         ]);
 
         //Inserción a la base de datos
         $usuario = new User();
-        $usuario->name = $request->name;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->name);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
-        $usuario->estado_id = Estado::where('nombre', 'ingresado')->first()?->id;
         $usuario->password = Hash::make($request->password);
         $usuario->save();
 
-        $usuario->assignRole('administrador'); // Asigna el rol de administrador al usuario creado
+        $usuario->assignRole('admin'); // Asigna el rol de administrador al usuario creado
 
         return redirect()->route('admin.usuarios.index')
         ->with('mensaje','Registro Exitoso!')
@@ -61,6 +65,9 @@ class UsuarioController extends Controller
 
     //permite traer todo lo que esta en el formulario de edicion
     public function update(Request $request, $id){
+
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
+
         $usuario = User::find($id);
         //Valida los datos del formulario
         $request->validate([
@@ -71,8 +78,8 @@ class UsuarioController extends Controller
         ]);
 
         //Actualiza los datos de la admision
-        $usuario->name = $request->name;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->name);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
         if($request->filled('password')) {
             // Solo actualiza la contraseña si se ha proporcionado una nueva

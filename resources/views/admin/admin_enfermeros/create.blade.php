@@ -23,9 +23,12 @@
                             <div class="col-md-12">
                                 <div class="form group">
                                     <label for="rut">Rut</label> <b>*</b>
-                                    <input type="text" name="rut" id="rut" class="form-control"
+                                    <input placeholder="RUT sin punto con guión con DV" type="text" name="rut" id="rut" class="form-control"
                                         value="{{ old('rut') }}" required>
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
+                                    @error('rut')
+                                        <small style="color:red">{{ $message }}</small>
+                                    @enderror
                                 </div>
                             </div>
                         </div>

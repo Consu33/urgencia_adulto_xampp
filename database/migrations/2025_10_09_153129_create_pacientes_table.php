@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->string('apellido');
-            $table->string('rut', 12)->unique();
+            $table->string('rut', 10)->unique();
             $table->string('identificacion_tipo')->default('rut');
             $table->boolean('activo')->default(true)->index();
 

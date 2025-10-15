@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\RutChileno;
+use App\Helpers\RutHelper;
 
 class AdminEnfermeroController extends Controller
 {
@@ -26,26 +27,26 @@ class AdminEnfermeroController extends Controller
     
     public function store(Request $request)
     {
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => ['required', 'max:12', 'unique:users,rut', new RutChileno],
+            'rut' => ['required', 'max:10', 'unique:users,rut', new RutChileno],
             'password' => 'required|min:8|confirmed',
         ]);
 
         $usuario = new User();
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
         $usuario->password = Hash::make($request->password);
         $usuario->save();
 
         $adminEnfermero = new AdminEnfermero();
         $adminEnfermero->user_id = $usuario->id; 
-        $adminEnfermero->nombre = $request->nombre;
-        $adminEnfermero->apellido = $request->apellido;
+        $adminEnfermero->nombre = strtoupper($request->nombre);
+        $adminEnfermero->apellido = strtoupper($request->apellido);
         $adminEnfermero->rut = $request->rut;
-        $adminEnfermero->estado_id = Estado::where('nombre', 'ingresado')->first()?->id;
         $adminEnfermero->save();
 
         $usuario->assignRole('administrador_enfermero');
@@ -72,6 +73,7 @@ class AdminEnfermeroController extends Controller
     
     public function update(Request $request, $id)
     {
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $adminEnfermero = AdminEnfermero::find($id);
 
         $usuario = User::findOrFail($id);
@@ -82,14 +84,14 @@ class AdminEnfermeroController extends Controller
             'password' => 'nullable|min:8|confirmed',
         ]);
 
-        $adminEnfermero->nombre = $request->nombre;
-        $adminEnfermero->apellido = $request->apellido;
+        $adminEnfermero->nombre = strtoupper($request->nombre);
+        $adminEnfermero->apellido = strtoupper($request->apellido);
         $adminEnfermero->rut = $request->rut;
         $adminEnfermero->save();
 
         $usuario = User::find($adminEnfermero->user_id);
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
 
         if($request->filled('password')){

@@ -23,6 +23,7 @@
                         <thead style="background-color: #c0c0c0">
                             <tr>
                                 <td style="text-align:center">Número</td>
+                                <td style="text-align:center">Rol</td>
                                 <td style="text-align:center">Nombre</td>
                                 <td style="text-align:center">Apellido</td>
                                 <td style="text-align:center">Rut</td>
@@ -34,6 +35,7 @@
                             @foreach ($usuarios as $usuario)
                                 <tr>
                                     <td style="text-align:center">{{ $loop->iteration }}</td>
+                                    <td style="text-align">{{ $usuario->roles->pluck('name')->join(', ') }}</td>
                                     <td style="text-align:center">{{ $usuario->name }}</td>
                                     <td style="text-align:center">{{ $usuario->apellido }}</td>     
                                     <td style="text-align:center">{{ $usuario->rut }}</td>                                

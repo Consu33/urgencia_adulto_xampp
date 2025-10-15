@@ -97,4 +97,9 @@
             </div>
         </div>
     </div>
+    <script>
+        setTimeout(function () {
+            location.reload();
+        }, 5000); // recarga después de 5 segundos
+    </script>
 @endsection

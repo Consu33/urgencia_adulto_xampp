@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\RutChileno;
+use App\Helpers\RutHelper;
 
 
 
@@ -28,26 +29,26 @@ class AdminUrgenciaController extends Controller
     
     public function store(Request $request)
     {
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => ['required', 'max:12', 'unique:users,rut', new RutChileno],
+            'rut' => ['required', 'max:10', 'unique:users,rut', new RutChileno],
             'password' => 'required|min:8|confirmed',
         ]);
 
         $usuario = new User();
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
         $usuario->password = Hash::make($request->password);
         $usuario->save();
 
         $adminUrgencia = new AdminUrgencia();
         $adminUrgencia->user_id = $usuario->id; 
-        $adminUrgencia->nombre = $request->nombre;
-        $adminUrgencia->apellido = $request->apellido;
+        $adminUrgencia->nombre = strtoupper($request->nombre);
+        $adminUrgencia->apellido = strtoupper($request->apellido);
         $adminUrgencia->rut = $request->rut;
-        $adminUrgencia->estado_id = Estado::where('nombre', 'ingresado')->first()?->id;
         $adminUrgencia->save();
 
         $usuario->assignRole('administrador_urgencia');
@@ -72,6 +73,7 @@ class AdminUrgenciaController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $adminUrgencia = AdminUrgencia::find($id);   
 
         $usuario = User::findOrFail($id);
@@ -83,14 +85,14 @@ class AdminUrgenciaController extends Controller
         ]);
        
         //Actualiza los datos 
-        $adminUrgencia->nombre = $request->nombre;
-        $adminUrgencia->apellido = $request->apellido;
+        $adminUrgencia->nombre = strtoupper($request->nombre);
+        $adminUrgencia->apellido = strtoupper($request->apellido);
         $adminUrgencia->rut = $request->rut;
         $adminUrgencia->save();
         
         $usuario = User::find($adminUrgencia->user_id);
-        $usuario->name = $request->nombre;
-        $usuario->apellido = $request->apellido;
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
 
         if($request->filled('password')){

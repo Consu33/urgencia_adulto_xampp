@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
-                    <form action="{{ URL('/admin/usuarios/create') }}" method="POST" data-spinner-color="primary">
+                    <form action="{{ route('admin.usuarios.store') }}" method="POST" data-spinner-color="primary">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -26,6 +26,9 @@
                                     <input type="text" name="rut" id="rut" class="form-control"
                                         value="{{ old('rut') }}" required>
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
+                                    @error('rut')
+                                        <small style="color:red">{{ $message }}</small>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -81,7 +84,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form group">
-                                    <a href="{{ url('admin/usuarios') }}" class="btn btn-secondary cancel-btn">Cancelar</a>
+                                    <a href="{{ route('admin.usuarios.index') }}" class="btn btn-secondary cancel-btn">Cancelar</a>
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-floppy"></i> Guardar
                                     </button>
