@@ -23,7 +23,7 @@
                             <div class="col-md-12">
                                 <div class="form group">
                                     <label for="rut">Rut</label> <b>*</b>
-                                    <input type="text" name="rut" id="rut" class="form-control"
+                                    <input placeholder="RUT (sin puntos ni guión)" type="text" name="rut" id="rut" class="form-control"
                                         value="{{ old('rut') }}" required>
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
                                     @error('rut')
@@ -61,7 +61,7 @@
                             <div class="col-md-12">
                                 <div class="form group">
                                     <label for="">Contraseña</label> <b>*</b>
-                                    <input type="password" name="password" class="form-control" required>
+                                    <input placeholder="Contraseña debe contener 8 caracteres" type="password" name="password" class="form-control" required>
                                     @error('password')
                                         <small style="color:red">{{ $message }}</small>
                                     @enderror

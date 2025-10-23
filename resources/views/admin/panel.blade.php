@@ -6,7 +6,7 @@
 
 @section('content')
    <div class="container">
-    <h1 class="mb-4">Panel de Atención</h1>
+    <h1 class="mb-4"></h1>
 
     {{-- Contenedor donde se inyecta la vista parcial --}}
     <div id="panel-dinamico">

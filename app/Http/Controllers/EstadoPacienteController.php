@@ -16,6 +16,27 @@ class EstadoPacienteController extends Controller
         return view('admin.panel', $panel);
     }
 
+    //función para mostrar el panel en la TV
+    public function tv()
+    {
+        $panel = $this->calcularPanel(); 
+
+        return view('admin.panel_urgencia', [
+            'hayCriticos' => $panel['hayCriticos'],
+            'categorias' => $panel['categorias'],
+        ]);
+    }
+
+    public function panelUrgenciaDinamico()
+    {
+        $panel = $this->calcularPanel();
+
+        return view('admin.panel_urgencia_parcial', [
+            'hayCriticos' => $panel['hayCriticos'],
+            'categorias' => $panel['categorias'],
+        ]);
+    }
+
     public function getPacienteJson($id)
     {
         $paciente = Paciente::with('estado', 'categoria')->findOrFail($id);
@@ -213,13 +234,13 @@ class EstadoPacienteController extends Controller
             $impactoESI1PorCategoria = $categoria->codigo !== 'ESPERA-CAMA' ? $impactoESI1 : 0;
 
             // Impacto cruzado si categoría es ESI 4 o ESI 5
-            $impactoCruzado = 0;
+            /*$impactoCruzado = 0;
             if (in_array($categoria->codigo, ['ESI 4', 'ESI 5'])) {
                 $impactoCruzado += ($conteoPorCategoria['ESI 2'] ?? 0) * ($umbralesBase['ESI 2'] ?? 0);
                 $impactoCruzado += ($conteoPorCategoria['ESI 3'] ?? 0) * ($umbralesBase['ESI 3'] ?? 0);
-            }
+            }*/
 
-            $tiempoTotal = $tiempoPropio + $impactoESI1PorCategoria + $impactoCruzado;
+            $tiempoTotal = $tiempoPropio + $impactoESI1PorCategoria;
 
             if (isset($estados['En espera de atencion'])) {
                 $estados['En espera de atencion']['promedio'] = $categoria->codigo === 'ESI 1' ? 0 : $tiempoTotal;

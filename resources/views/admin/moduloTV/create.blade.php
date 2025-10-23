@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="row">
-        <h1>Registro de Administradores Urgencia</h1>
+        <h1>Registro de Usuarios-TV</h1>
     </div>
 
     <hr>
@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
-                    <form action="{{ url('/admin/admin_urgencias/create') }}" method="POST" data-spinner-color="primary">
+                    <form action="{{ URL('/admin/moduloTV/create') }}" method="POST" data-spinner-color="primary">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -31,7 +31,7 @@
                                     @enderror
                                 </div>
                             </div>
-                        </div>
+                        </div>    
                         <br>
                         <div class="row">
                             <div class="col-md-12">
@@ -84,9 +84,9 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form group">
-                                    <a href="{{ url('admin/admin_urgencias') }}" class="btn btn-secondary cancel-btn">Cancelar</a>
+                                    <a href="{{ url('admin/moduloTV') }}" class="btn btn-secondary cancel-btn">Cancelar</a>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-floppy"></i> Guardar
+                                         <i class="bi bi-floppy"></i> Guardar
                                     </button>
                                 </div>
                             </div>
