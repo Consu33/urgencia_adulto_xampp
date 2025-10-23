@@ -2,31 +2,35 @@
     use Illuminate\Support\Str;
 @endphp
 
-<div class="row mb-4">
-    <h2 class="mb-3">Tiempo de Espera para Atención</h2>
+<div class="container-fluid px-5">
+    <h1 class="text-center fs-1 mb-5"> Tiempo de Espera para Atención</h1>
 
     @if ($hayCriticos)
-        <div class="alert text-center" style="background-color: #dc3545; color: white;">
-            <h2>Ingreso de Paciente en Riesgo Vital, su espera puede ser mayor. </h2>
+        <div class="alert alert-danger text-center fs-3 py-4">
+            Paciente en Riesgo Vital, su espera puede verse enlentecida
         </div>
     @endif
 
     {{-- Bloques de ocupación --}}
-    <div class="row mb-3">
+    <div class="row justify-content-center mb-5">
         @foreach ($categorias as $categoria)
             @if ($categoria['codigo'] !== 'SIN CATEGORIZAR')
                 @php
                     $ocupacion = $categoria['cupo'] > 0 ? ($categoria['total'] / $categoria['cupo']) * 100 : 0;
                 @endphp
-                <div class="col-md-2">
-                    <div class="card text-center bg-{{ $categoria['color'] }} text-dark">
-                        <div class="card-body p-2">
-                            <strong class="fs-5">{{ $categoria['codigo'] }}</strong><br>
-                            <span style="font-size: 4em;">
+                <div class="col-lg-3 col-xl-2 mb-4">
+                    <div class="card text-center bg-{{ $categoria['color'] }} text-dark shadow-lg">
+                        <div class="card-body p-4">
+                            <strong class="fs-3">{{ $categoria['codigo'] }}</strong><br>
+                            <span class="fs-1">
                                 {{ $categoria['total'] }} / {{ $categoria['cupo'] }}
                             </span>
                             @if ($ocupacion > 100)
-                                <div class="fs-5 mt-1 badge bg-danger text-white">Sobre capacidad</div>
+                                <div class="mt-3">
+                                    <span class="badge bg-danger text-white w-100 py-2 fs-6 text-center rounded">
+                                        <strong>SATURADO</strong>
+                                    </span>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -36,61 +40,76 @@
     </div>
 
     {{-- Panel principal de categorías --}}
-    <div class="row" id="panel-categorias">
+    {{-- Contenedor desplazable horizontalmente --}}
+    <div id="panel-categorias" class="d-flex justify-content-center flex-nowrap gap-4 px-4 py-3">
+        {{-- Tarjetas de categorías --}}
         @foreach ($categorias as $categoria)
+            {{-- Excluir categoría 'SIN CATEGORIZAR' --}}
             @if ($categoria['codigo'] !== 'SIN CATEGORIZAR')
-                <div class="col-md-4 mb-4">
-                    <div class="card border-{{ $categoria['color'] }}" data-categoria="{{ $categoria['codigo'] }}">
-                        <div class="card-header text-dark bg-{{ $categoria['color'] }}">
-                            <strong>{{ $categoria['codigo'] . ' - ' . $categoria['nombre'] }}</strong>
+                {{-- Tarjeta de categoría con los bordes arriba --}}
+                {{-- <div class="card border-{{ $categoria['color'] }} shadow" style="width: 22vw; min-width: 300px;"
+                    data-categoria="{{ $categoria['codigo'] }}">
+                    {{-- Encabezado de la tarjeta --}}
+                {{-- <div class="card-header text-dark bg-{{ $categoria['color'] }} fs-4 text-center">
+                        <strong>{{ $categoria['codigo'] }}<br>{{ $categoria['nombre'] }}</strong>
+                    </div>
+                    <div class="card-body bg-white p-3"> --}}
+
+                {{-- Tarjeta de categoría con banda lateral --}}
+                <div class="card d-flex flex-row shadow" style="width: 22vw; min-width: 300px;"
+                    data-categoria="{{ $categoria['codigo'] }}">
+                    {{-- Banda vertical izquierda con color clínico --}}
+                    <div
+                        style="width: 12px; background-color: var(--bs-{{ $categoria['color'] }}); border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem;">
+                    </div>
+                    {{-- Contenido de la tarjeta --}}
+                    <div class="flex-grow-1 bg-white p-3">
+                        {{-- Título de categoría --}}
+                        <div class="text-center mb-2">
+                            <strong class="fs-5 text-dark">{{ $categoria['codigo'] }}</strong>
                         </div>
-                        <div class="card-body bg-white">
-                            <div class="row">
-                                @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
-                                    @php
-                                        $estadoSlug = Str::slug($estadoNombre);
-                                        $espera = $estadoData['promedio'];
-                                        $umbral = $categoria['umbrales'];
-                                        $color =
-                                            $espera > $umbral
-                                                ? 'danger'
-                                                : ($espera > $umbral * 0.7
-                                                    ? 'warning'
-                                                    : 'success');
-                                    @endphp
+                        {{-- Estados dentro de la categoría --}}
+                        @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
+                            {{-- Cálculo de variables para la visualización --}}
+                            @php
+                                $estadoSlug = Str::slug($estadoNombre);
+                                $espera = $estadoData['promedio'];
+                                $umbral = $categoria['umbrales'];
+                                $color =
+                                    $espera > $umbral ? 'danger' : ($espera > $umbral * 0.7 ? 'warning' : 'success');
+                            @endphp
+                            {{-- Tarjeta de estado --}}
+                            <div class="info-box d-flex bg-light text-dark rounded mb-3 shadow"
+                                id="card-{{ Str::slug($categoria['codigo']) }}-{{ $estadoSlug }}">
 
-                                    <div class="col-md-12 mb-3">
-                                        <div class="info-box border border-{{ $categoria['color'] }} bg-white text-dark"
-                                            id="card-{{ Str::slug($categoria['codigo']) }}-{{ $estadoSlug }}">
+                                {{-- Contenido del estado --}}
+                                <div class="d-flex align-items-center">
 
-                                            <span
-                                                class="info-box-icon border-end border-{{ $categoria['color'] }} bg-white text-dark">
-                                                <i class="{{ $estadoData['icono'] }}"></i>
-                                            </span>
-
-                                            <div class="info-box-content">
-                                                <span
-                                                    class="info-box-text fw-bold text-uppercase fw-semibold fs-4">{{ $estadoNombre }}</span>
-                                                <span
-                                                    class="info-box-number cantidad-{{ $estadoSlug }} contador fs-3">
-                                                    {{ $estadoData['cantidad'] }} pacientes
-                                                </span>
-                                                
-                                                @unless ($categoria['codigo'] === 'ESPERA-CAMA')
-                                                    <span class="fs-5 text-{{ $color }}"> {{ $espera }} min </span>                                                    
-                                                @endunless
-
-                                                <div class="progress mt-2">
-                                                    <div class="progress-bar bg-{{ $categoria['color'] }}"
-                                                        style="width: {{ min($espera * 2, 100) }}%">
-                                                    </div>
-                                                </div>
+                                    {{-- Icono y detalles del estado --}}
+                                    <span class="me-3">
+                                        <i class="{{ $estadoData['icono'] }} fa-2x text-{{ $categoria['color'] }}"></i>
+                                    </span>
+                                    {{-- Detalles del estado --}}
+                                    <div>
+                                        <div class="fs-5 fw-bold text-uppercase">{{ $estadoNombre }}</div>
+                                        <div class="fs-6">{{ $estadoData['cantidad'] }} pacientes</div>
+                                        {{-- Tiempo de espera promedio --}}
+                                        @unless (
+                                            $categoria['codigo'] === 'ESI 1' ||
+                                                Str::lower(trim($estadoNombre)) === 'en atencion' ||
+                                                Str::lower(trim($estadoNombre)) === 'en espera de cama')
+                                            <span class="fs-3 text-dark fw-bold"> {{ $espera }} min </span>
+                                        @endunless
+                                        {{-- Barra de progreso --}}
+                                        <div class="progress mt-2" style="height: 12px;">
+                                            <div class="progress-bar bg-{{ $categoria['color'] }}"
+                                                style="width: {{ min($espera * 2, 100) }}%">
                                             </div>
                                         </div>
                                     </div>
-                                @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
             @endif

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Paciente;
 use App\Models\Estado;
 use App\Models\Categoria;
@@ -42,6 +43,7 @@ class PacienteController extends Controller
         $pacienteExistente = Paciente::with('atenciones', 'estado')
             ->where('rut', $rutNormalizado)
             ->first();
+
         //Si el paciente existe, revisa si está inactivo o tiene atención activa
         if ($pacienteExistente) {
             if ($pacienteExistente->activo === false) {
@@ -104,8 +106,14 @@ class PacienteController extends Controller
             ],
         ];
 
+        //validación adicional si el tipo es RUT
         if ($tipo === 'rut') {
-            $rules['rut'] = new RutChileno;
+            $rules['rut'] = [
+                'required',
+                'max:10',
+                Rule::unique('pacientes', 'rut'),
+                new RutChileno,
+            ];
         }
 
         $request->merge(['rut' => $rutNormalizado]); // ← Actualiza el valor antes de validar
@@ -113,6 +121,14 @@ class PacienteController extends Controller
 
         $estadoInicial = Estado::where('nombre', 'ingresado')->first();
         $categoriaInicial = Categoria::where('nombre', 'SIN CATEGORIZAR')->first();
+
+        // Crear usuario y asignar rol
+        $usuario = new User();
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
+        $usuario->rut = $rutNormalizado; 
+        $usuario->password = bcrypt('');
+        $usuario->save();
 
         $paciente = new Paciente();
         $paciente->nombre = strtoupper($request->nombre);
@@ -130,6 +146,8 @@ class PacienteController extends Controller
             'fecha_atencion' => now(),
             'observaciones' => 'Paciente nuevo con atención inicial automática',
         ]);
+
+        
 
         return redirect()->route('admin.pacientes.index')
             ->with('mensaje', 'Paciente registrado exitosamente con atención inicial.')
@@ -216,7 +234,7 @@ class PacienteController extends Controller
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => 'required|max:12|unique:pacientes,rut,' . $paciente->id
+            'rut' => 'required|max:10|unique:pacientes,rut,' . $paciente->id
         ]);
 
         //actualizamos los datos del paciente

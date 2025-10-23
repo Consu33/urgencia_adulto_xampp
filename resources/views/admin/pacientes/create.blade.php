@@ -38,10 +38,10 @@
                                     </div>
                                 </div>
 
-                                <div class="form group">
+                                <div class="form-group">
                                     <label for="rut">Identificación</label> <b>*</b>
                                     <input type="text" name="rut" id="rut" class="form-control"
-                                        value="{{ old('identificacion') }}" required>
+                                        value="{{ old('rut') }}" required>
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
                                 </div>
                             </div>

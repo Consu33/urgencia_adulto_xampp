@@ -18,6 +18,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true)->index();
 
             // Campos adicionales llenados por el enfermero
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('categoria_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('estado_id')->nullable()->constrained()->onDelete('cascade');
 

@@ -280,6 +280,44 @@
                             </li>
                         @endcan
 
+                        {{-- Panel de Categorización --}}
+
+                        @can('admin.moduloTV.index')
+                            <li class="nav-item has-treeview">
+                                <a href="{{ route('admin.panel.tv') }}" class="nav-link active">
+                                    <i class="nav-icon fas fa-tv"></i>
+                                    <p>
+                                        TV Urgencia
+                                        <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="{{ url('admin/moduloTV/create') }}" class="nav-link active">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Creación Usuario-TV</p>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item">
+                                        <a href="{{ url('admin/moduloTV') }}" class="nav-link active">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Listado Usuarios-TV</p>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.panel.tv') }}" class="nav-link active">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Panel TV</p>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>                            
+                        @endcan
+                        
 
                         <li class="nav-item">
                             <a href="{{ route('logout') }}" class="nav-link" style="background-color: #a9200e"
@@ -358,6 +396,7 @@
         <span class="visually-hidden"></span>
     </div>
 
+
     <script>
         $(document).ready(function() {
             $('form').on('submit', function() {
@@ -421,18 +460,61 @@
                     .show();
             });
 
-            
+
 
         });
     </script>
     // Manejo del evento pageshow para detectar navegación con el botón atrás
     <script>
-        window.addEventListener('pageshow', function (event) {
+        window.addEventListener('pageshow', function(event) {
             if (event.persisted || performance.navigation.type === 2) {
                 // Si la página se carga desde la caché (botón atrás)
                 $('#global-spinner').hide();
                 $('#blur-overlay').hide(); // si usas un overlay visual
             }
+        });
+    </script>
+
+    // Validación RUT Chileno
+    <script>
+        function validarRut(rut) {
+            rut = rut.replace(/\./g, '').replace('-', '');
+            if (rut.length < 2) return false;
+
+            const cuerpo = rut.slice(0, -1);
+            const dv = rut.slice(-1).toUpperCase();
+
+            let suma = 0;
+            let multiplo = 2;
+
+            for (let i = cuerpo.length - 1; i >= 0; i--) {
+                suma += parseInt(cuerpo[i]) * multiplo;
+                multiplo = multiplo < 7 ? multiplo + 1 : 2;
+            }
+
+            const dvEsperado = 11 - (suma % 11);
+            const dvFinal = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+
+            return dv === dvFinal;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const rutInput = document.getElementById('rut');
+            const errorMsg = document.getElementById('rut-error');
+
+            rutInput.addEventListener('input', function() {
+                const valor = rutInput.value.trim();
+                if (valor === '') {
+                    errorMsg.style.display = 'none';
+                    return;
+                }
+
+                if (validarRut(valor)) {
+                    errorMsg.style.display = 'none';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            });
         });
     </script>
 

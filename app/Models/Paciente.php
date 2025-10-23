@@ -24,6 +24,11 @@ class Paciente extends Model
         return $this->belongsTo(Estado::class, 'estado_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function atenciones()
     {
         return $this->hasMany(Atencion::class);

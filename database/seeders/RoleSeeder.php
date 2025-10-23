@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Faker\Provider\ar_EG\Person;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -17,6 +18,7 @@ class RoleSeeder extends Seeder
         $enfermero = Role::create(['name'=>'enfermero']);
         $adminUrgencia = Role::create(['name'=>'administrador_urgencia']);
         $adminEnfermero = Role::create(['name'=>'administrador_enfermero']);
+        $panel = Role::create(['name'=>'panel']);
 
         //Rutas para el administrador
         Permission::create(['name' => 'admin.index']);
@@ -90,6 +92,13 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.atenciones.create'])->syncRoles([$administrador, $admision, $adminUrgencia, $adminEnfermero]);
         Permission::create(['name' => 'admin.atenciones.store'])->syncRoles([$administrador, $admision, $adminUrgencia, $adminEnfermero]);
 
-        
+        //Rutas para el panel
+        Permission::create(['name' => 'admin.panel.tv'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.index'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.create'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.store'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.show'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.update'])->syncRoles([$administrador,$panel]);
+        Permission::create(['name' => 'admin.moduloTV.destroy'])->syncRoles([$administrador,$panel]);
     }
 }

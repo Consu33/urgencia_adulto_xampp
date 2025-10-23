@@ -105,8 +105,24 @@
                             class="fas bi bi-file-person"></i></a>
                 </div>
             </div>
-        @endcan
+        @endcan     
         
+        
+      
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-Muted link">
+                    <div class="inner">
+                        <h3>{{ $total_moduloTv }}</h3>
+                        <p>Usuarios-Tv</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion fas bi bi-file-person"></i>
+                    </div>
+                    <a href="{{ url('admin/moduloTV') }}" class="small-box-footer">Más Información <i
+                            class="nav-icon fas fa-tv"></i></a>
+                </div>
+            </div>
+       
         
     </div>
 @endsection

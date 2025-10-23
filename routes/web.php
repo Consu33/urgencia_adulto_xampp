@@ -78,18 +78,26 @@ Route::put('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::cl
 Route::delete('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::class, 'destroy'])->name('admin.pacientes.destroy')->middleware('auth', 'can:admin.pacientes.destroy');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.update-category')->middleware('auth', 'can:admin.pacientes.condition');
 
-
 //rutas de atenciones para pacientes ya en la bd
 Route::get('/admin/atenciones/create/{paciente_id}', [App\Http\Controllers\AtencionController::class, 'create'])->name('admin.atenciones.create')->middleware('auth', 'can:admin.atenciones.create');
 Route::post('/admin/atenciones', [App\Http\Controllers\AtencionController::class, 'store'])->name('admin.atenciones.store')->middleware('auth', 'can:admin.atenciones.store');
 Route::post('/admin/pacientes/{paciente}/atencion-rapida', [PacienteController::class, 'atencionRapida'])->name('admin.pacientes.atencionRapida');
 Route::put('/admin/pacientes/{paciente}/actualizar-datos', [PacienteController::class, 'actualizarDatos'])->name('admin.pacientes.actualizarDatos');
 
-//Rutas para el administrador - EstadoPaciente
+//Rutas para el EstadoPaciente
 Route::get('/admin/condition', [App\Http\Controllers\EstadoPacienteController::class, 'condition'])->name('admin.pacientes.condition')->middleware('auth', 'can:admin.pacientes.condition');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.updateCategory')->middleware('auth', 'can:admin.pacientes.updateCategory');
 Route::get('/admin/panel', [App\Http\Controllers\EstadoPacienteController::class, 'index'])->name('admin.panel.index');
 Route::get('/admin/panel/dinamico', [App\Http\Controllers\EstadoPacienteController::class, 'panelDinamico'])->name('admin.panel.dinamico')->middleware('auth', 'can:admin.panel.index');
 
-
+//Rutas para el panel TV de urgencias
+Route::get('/admin/panel_urgencia', [App\Http\Controllers\EstadoPacienteController::class, 'tv'])->name('admin.panel.tv')->middleware('auth', 'can:admin.panel.tv');
+Route::get('/admin/panel_urgencia/dinamico', [EstadoPacienteController::class, 'panelUrgenciaDinamico'])->name('admin.panel_urgencia.dinamico');
+Route::get('/admin/moduloTV', [App\Http\Controllers\ModuloTvController::class, 'index'])->name('admin.moduloTV.index')->middleware('auth', 'can:admin.moduloTV.index');
+Route::get('/admin/moduloTV/create', [App\Http\Controllers\ModuloTvController::class, 'create'])->name('admin.moduloTV.create')->middleware('auth', 'can:admin.moduloTV.create');
+Route::post('/admin/moduloTV/create', [App\Http\Controllers\ModuloTvController::class, 'store'])->name('admin.moduloTV.store')->middleware('auth', 'can:admin.moduloTV.store');
+Route::get('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::class, 'show'])->name('admin.moduloTV.show')->middleware('auth', 'can:admin.moduloTV.show');
+Route::get('/admin/moduloTV/{id}/edit', [App\Http\Controllers\ModuloTvController::class, 'edit'])->name('admin.moduloTV.edit')->middleware('auth', 'can:admin.moduloTV.edit');
+Route::put('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::class, 'update'])->name('admin.moduloTV.update')->middleware('auth', 'can:admin.moduloTV.update');
+Route::delete('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::class, 'destroy'])->name('admin.moduloTV.destroy')->middleware('auth', 'can:admin.moduloTV.destroy');
 

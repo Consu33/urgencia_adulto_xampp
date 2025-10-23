@@ -66,4 +66,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(AdminEnfermero::class);
     }
+
+    public function modulo_tv()
+    {
+        return $this->hasMany(ModuloTv::class);
+        
+    }
 }
