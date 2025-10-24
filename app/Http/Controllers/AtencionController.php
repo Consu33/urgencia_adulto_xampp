@@ -24,18 +24,28 @@ class AtencionController extends Controller
     {
         // Buscar paciente existente por rut
         $pacienteExistente = Paciente::where('rut', $request->input('rut'))->first();
-
+        
         if ($pacienteExistente) {
+            $estadoInicial = Estado::where('nombre', 'ingresado')->first();
+
+            if (!$pacienteExistente->activo) {
+                // Reactivar paciente y asignar estado
+                $pacienteExistente->activo = true;
+                $pacienteExistente->estado_id = $estadoInicial?->id;
+                $pacienteExistente->save();
+            }
+
+            // Registrar nueva atención
             Atencion::create([
                 'paciente_id' => $pacienteExistente->id,
-                'estado_id' => Estado::where('nombre', 'ingresado')->first()?->id,
-                'categoria_id' => null, // o una categoría por defecto si lo deseas
+                'estado_id' => $estadoInicial?->id,
+                'categoria_id' => null,
                 'fecha_atencion' => now(),
                 'observaciones' => 'Atención automática al reingresar paciente',
             ]);
 
             return redirect()->route('admin.pacientes.index')
-                ->with('mensaje', 'Paciente ya estaba registrado. Se agregó una nueva atención automáticamente.')
+                ->with('mensaje', 'Paciente reactivado y atención registrada correctamente.')
                 ->with('icono', 'success');
         }
 

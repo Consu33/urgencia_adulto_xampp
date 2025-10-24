@@ -26,8 +26,7 @@ class UsuarioController extends Controller
 
     public function store(Request $request){
         //Valida los datos del formulario
-        dd($request->all());
-
+        
         $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
         $request->validate([
             'name' => 'required|max:50',

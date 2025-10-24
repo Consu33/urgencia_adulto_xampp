@@ -315,9 +315,9 @@
                                     </li>
 
                                 </ul>
-                            </li>                            
+                            </li>
                         @endcan
-                        
+
 
                         <li class="nav-item">
                             <a href="{{ route('logout') }}" class="nav-link" style="background-color: #a9200e"
@@ -396,7 +396,7 @@
         <span class="visually-hidden"></span>
     </div>
 
-
+    {{-- Overlay para desenfocar la página cuando el spinner está activo --}}
     <script>
         $(document).ready(function() {
             $('form').on('submit', function() {
@@ -464,7 +464,7 @@
 
         });
     </script>
-    // Manejo del evento pageshow para detectar navegación con el botón atrás
+    {{-- Manejo del evento pageshow para detectar navegación con el botón atrás --}}
     <script>
         window.addEventListener('pageshow', function(event) {
             if (event.persisted || performance.navigation.type === 2) {
@@ -475,7 +475,7 @@
         });
     </script>
 
-    // Validación RUT Chileno
+    {{-- Validación RUT Chileno --}}
     <script>
         function validarRut(rut) {
             rut = rut.replace(/\./g, '').replace('-', '');
@@ -501,22 +501,75 @@
         document.addEventListener('DOMContentLoaded', function() {
             const rutInput = document.getElementById('rut');
             const errorMsg = document.getElementById('rut-error');
+            const tipoRadios = document.querySelectorAll('input[name="identificacion_tipo"]');
 
-            rutInput.addEventListener('input', function() {
+            function validarRutEnTiempoReal() {
+                if (!rutInput) return;
+
                 const valor = rutInput.value.trim();
-                if (valor === '') {
+                const tipo = document.querySelector('input[name="identificacion_tipo"]:checked')?.value;
+
+                // Si no hay tipo, asumimos que es RUT
+                const esRut = tipo ? tipo === 'rut' : true;
+
+                if (!esRut) {
                     errorMsg.style.display = 'none';
+                    rutInput.classList.remove('is-invalid');
                     return;
                 }
 
-                if (validarRut(valor)) {
+                if (valor === '' || validarRut(valor)) {
                     errorMsg.style.display = 'none';
+                    rutInput.classList.remove('is-invalid');
                 } else {
                     errorMsg.style.display = 'block';
+                    rutInput.classList.add('is-invalid');
                 }
+            }
+
+            if (rutInput) {
+                rutInput.addEventListener('input', validarRutEnTiempoReal);
+                rutInput.addEventListener('blur', validarRutEnTiempoReal);
+            }
+
+            tipoRadios.forEach(radio => {
+                radio.addEventListener('change', validarRutEnTiempoReal);
             });
+
+            validarRutEnTiempoReal();
         });
     </script>
+
+    {{-- Notificaciones para pacientes sin categorizar --}}
+    @if (session('mensaje') && session('icono'))
+        <script>
+            Swal.fire({
+                position: "center",
+                icon: "{{ session('icono') }}",
+                title: "{{ session('mensaje') }}",
+                showConfirmButton: false,
+                timer: 2000
+            });
+        </script>
+    @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('pacienteNuevo') === 'true') {
+                const alerta = document.createElement('div');
+                alerta.innerHTML = `
+                    <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; margin: 10px;">
+                        🟡 <strong>Paciente nuevo sin categorizar.</strong> Actualice la página para visualizar.
+                    </div>
+                `;
+                document.body.prepend(alerta);
+            }
+
+            // Al recargar, se borra el flag
+            localStorage.removeItem('pacienteNuevo');
+        });
+    </script>
+
 
     @stack('scripts')
 </body>

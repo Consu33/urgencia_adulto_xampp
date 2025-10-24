@@ -41,7 +41,7 @@
                                 <div class="form-group">
                                     <label for="rut">Identificación</label> <b>*</b>
                                     <input type="text" name="rut" id="rut" class="form-control"
-                                        value="{{ old('rut') }}" required>
+                                        value="{{ old('rut') }}">
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
                                 </div>
                             </div>
@@ -84,197 +84,196 @@
                             </div>
                         </div>
                     </form>
-                    
+
                     @if (session('paciente_existente'))
-                        
                         @php $paciente = session('paciente_existente'); @endphp
                         @php $atencion = $paciente->atenciones->last(); @endphp
-                        @php $estado = $paciente->estado->nombre ?? 'sin estado'; @endphp
+                        @php $estado = $atencion->estado->nombre ?? 'sin estado'; @endphp
+                        @php $activo = $paciente->activo ? 'activo' : 'inactivo'; @endphp
 
                         <script>
-                            //define una variable js con el estado del paciente para usarla en las condiciones
-                            const estadoPaciente = "{{ $estado }}";
-                            //me muestra un modal de advertencia indicando que el paciente tiene una atencion activa
-                            if (['Ingresado', 'En espera de atencion', 'En atencion', 'En espera de cama'].includes(estadoPaciente)) {
-                                // Modal de paciente con atención activa
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Paciente con atención activa',
-                                    html: `
-                            <div style="text-align:center;">
-                                <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
-                                <strong>RUT:</strong> {{ $paciente->rut }}<br>
-                                <strong>Estado actual:</strong> {{ $estado }}<br><br>
-                                Este paciente ya tiene una atención activa.<br>
-                                No se puede registrar una nueva atención hasta que sea dado de alta.
-                            </div>
-                        `,
-                                    confirmButtonText: 'Entendido',
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false
-                                });
-                                //muestra el modal con los datos del paciente y 3 botones
-                            } else {
-                                // Modal de paciente disponible
-                                Swal.fire({
-                                    title: 'Paciente ya registrado',
-                                    icon: 'info',
-                                    html: `
-                            <div style="text-align:center;">
-                                <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
-                                <strong>RUT:</strong> {{ $paciente->rut }}<br>
-                                <strong>Última atención:</strong> {{ optional($atencion->categoria)->nombre ?? 'sin categorizar' }}<br>
-                                <strong>Total de atenciones:</strong> {{ $paciente->atenciones->count() }}<br><br>
-                                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
-                                    <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
-                                    <button id="btn-cancelar" style="background-color:#6c757d; color:white; padding:6px 12px; border:none; border-radius:4px;">Cancelar</button>
-                                    <button id="btn-editar" style="background-color:#EDE505; color:white; padding:6px 12px; border:none; border-radius:4px;">Editar datos</button>
-                                </div>
-                            </div>
-                        `,
-                                    showConfirmButton: false,
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false
-                                });
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const estadoPaciente = "{{ $estado }}";
+                                const estadoLogico = "{{ $activo }}";
 
-                                // Eventos de botones
-                                document.addEventListener('click', function(e) {
-                                    if (e.target.id === 'btn-confirmar') {
-                                        //spinner de carga
-                                        $('#blur-overlay').show();
-                                        $('#global-spinner')
-                                            .removeClass()
-                                            .addClass('spinner-border text-success') 
-                                            .show();
+                                if (estadoLogico === 'activo' && ['Ingresado', 'En espera de atencion', 'En atencion',
+                                        'En espera de cama'
+                                    ].includes(estadoPaciente)) {
+                                    // Modal de atención activa
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Paciente con atención activa',
+                                        html: `
+                                            <div style="text-align:center;">
+                                                <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
+                                                <strong>RUT:</strong> {{ $paciente->rut }}<br>
+                                                <strong>Estado actual:</strong> {{ $estado }}<br><br>
+                                                Este paciente ya tiene una atención activa.<br>
+                                                No se puede registrar una nueva atención hasta que sea dado de alta.
+                                            </div>
+                                        `,
+                                        confirmButtonText: 'Entendido',
+                                        allowOutsideClick: false,
+                                        allowEscapeKey: false
+                                    });
+                                } else {
+                                    // Modal de paciente disponible
+                                    Swal.fire({
+                                        title: 'Paciente ya registrado',
+                                        icon: 'info',
+                                        html: `
+                                            <div style="text-align:center;">
+                                                <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
+                                                <strong>RUT:</strong> {{ $paciente->rut }}<br>
+                                                <strong>Última atención:</strong> {{ optional($atencion->categoria)->nombre ?? 'sin categorizar' }}<br>
+                                                <strong>Total de atenciones:</strong> {{ $paciente->atenciones->count() }}<br><br>
+                                                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+                                                    <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
+                                                    <button id="btn-cancelar" style="background-color:#6c757d; color:white; padding:6px 12px; border:none; border-radius:4px;">Cancelar</button>
+                                                    <button id="btn-editar" style="background-color:#EDE505; color:white; padding:6px 12px; border:none; border-radius:4px;">Editar datos</button>
+                                                </div>
+                                            </div>
+                                        `,
+                                        showConfirmButton: false,
+                                        allowOutsideClick: false,
+                                        allowEscapeKey: false,
+                                        didRender: () => {
+                                            const container = Swal.getHtmlContainer();
 
-                                        //envia una solicitud fetch para registrar una nueva atencion para el paciente en mi ruta 
-                                        fetch("{{ route('admin.pacientes.atencionRapida', $paciente->id) }}", {
-                                                method: 'POST',
-                                                //incluye el token CSRF en los encabezados para que laravel lo valide
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                                },
-                                                //puede enviar datos si lo necesita, en este caso no es necesario
-                                                body: JSON.stringify({})
-                                            })
-                                            //maneja la respuesta y redirige al panel de pacientes
-                                            .then(response => {
-                                                if (!response.ok) {
-                                                    throw new Error('Error al registrar la atención');
-                                                }
-                                                return response.text(); // o .json() si devuelves JSON
-                                            })
-                                            .then(() => {
-                                                Swal.fire({
-                                                    title: 'Atención registrada',
-                                                    icon: 'success',
-                                                    timer: 1500,
-                                                    showConfirmButton: false
-                                                }).then(() => {
-                                                    window.location.href = "{{ route('admin.pacientes.index') }}";
-                                                });
-                                            })
-                                            //muestra un error si algo falla 
-                                            .catch(error => {
-                                                //carga oculta de spinner
-                                                $('#blur-overlay').hide();
-                                                $('#global-spinner').hide();
+                                            container.querySelector('#btn-confirmar')?.addEventListener('click', () => {
+                                                $('#blur-overlay').show();
+                                                $('#global-spinner').removeClass().addClass(
+                                                    'spinner-border text-success').show();
 
-                                                Swal.fire({
-                                                    title: 'Error',
-                                                    text: error.message,
-                                                    icon: 'error'
-                                                });
-                                            });
-                                    }
-                                    if (e.target.id === 'btn-cancelar') {
-                                        Swal.close();
-                                    }
-                                    if (e.target.id === 'btn-editar') {
-                                        Swal.fire({
-                                            title: 'Editar datos del paciente',
-                                            html: `
-                                    <input type="text" id="nuevo-nombre" value="{{ $paciente->nombre }}" class="form-control mb-2" placeholder="Nombre" required>
-                                    <input type="text" id="nuevo-apellido" value="{{ $paciente->apellido }}" class="form-control mb-2" placeholder="Apellido" required>
-                                `,
-                                            showConfirmButton: true,
-                                            confirmButtonText: 'Guardar cambios',
-                                            showCancelButton: true,
-                                            cancelButtonText: 'Cancelar',
-                                            allowOutsideClick: false,
-                                            allowEscapeKey: false,
-                                            preConfirm: () => {
-                                                const nombre = document.getElementById('nuevo-nombre').value;
-                                                const apellido = document.getElementById('nuevo-apellido').value;
-
-                                                return fetch(
-                                                        "{{ route('admin.pacientes.actualizarDatos', $paciente->id) }}", {
-                                                            method: 'PUT',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                                            },
-                                                            body: JSON.stringify({
-                                                                nombre,
-                                                                apellido
-                                                            })
-                                                        })
+                                                fetch("{{ route('admin.pacientes.atencionRapida', $paciente->id) }}", {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                        },
+                                                        body: JSON.stringify({})
+                                                    })
                                                     .then(response => {
-                                                        if (!response.ok) {
-                                                            throw new Error('Error al guardar los datos');
-                                                        }
-                                                        return response.json();
+                                                        if (!response.ok) throw new Error(
+                                                            'Error al registrar la atención');
+                                                        return response.text();
+                                                    })
+                                                    .then(() => {
+                                                        localStorage.setItem('pacienteNuevo', 'true');
+                                                        Swal.fire({
+                                                            title: 'Atención registrada',
+                                                            icon: 'success',
+                                                            timer: 1500,
+                                                            showConfirmButton: false
+                                                        }).then(() => {
+                                                            window.location.href =
+                                                                "{{ route('admin.pacientes.index') }}";
+                                                        });
                                                     })
                                                     .catch(error => {
-                                                        Swal.showValidationMessage(`Error: ${error}`);
+                                                        $('#blur-overlay').hide();
+                                                        $('#global-spinner').hide();
+                                                        Swal.fire({
+                                                            title: 'Error',
+                                                            text: error.message,
+                                                            icon: 'error'
+                                                        });
                                                     });
-                                            }
-                                        }).then(result => {
-                                            //muestra confirmacion de datos actualizados
-                                            if (result.isConfirmed) {
-                                                Swal.fire({
-                                                    title: 'Datos actualizados',
-                                                    icon: 'success',
-                                                    timer: 1500,
-                                                    showConfirmButton: false,
-                                                    allowOutsideClick: false,
-                                                    allowEscapeKey: false
-                                                }).then(() => {
-                                                    mostrarModalAtencion(result.value.paciente);
-                                                });
-                                            }
-                                            if (result.dismiss === Swal.DismissReason.cancel) {
-                                                mostrarModalAtencion(@json($paciente));
-                                            }
-                                        });
-                                    }
-                                });
+                                            });
 
-                                // Función para mostrar modal principal luego de edición
+                                            container.querySelector('#btn-cancelar')?.addEventListener('click', () => {
+                                                Swal.close();
+                                            });
+
+                                            container.querySelector('#btn-editar')?.addEventListener('click', () => {
+                                                Swal.fire({
+                                                    title: 'Editar datos del paciente',
+                                                    html: `
+                                                        <input type="text" id="nuevo-nombre" value="{{ $paciente->nombre }}" class="form-control mb-2" placeholder="Nombre" required>
+                                                        <input type="text" id="nuevo-apellido" value="{{ $paciente->apellido }}" class="form-control mb-2" placeholder="Apellido" required>
+                                                    `,
+                                                    showConfirmButton: true,
+                                                    confirmButtonText: 'Guardar cambios',
+                                                    showCancelButton: true,
+                                                    cancelButtonText: 'Cancelar',
+                                                    allowOutsideClick: false,
+                                                    allowEscapeKey: false,
+                                                    preConfirm: () => {
+                                                        const nombre = document.getElementById(
+                                                            'nuevo-nombre').value;
+                                                        const apellido = document.getElementById(
+                                                            'nuevo-apellido').value;
+
+                                                        return fetch(
+                                                                "{{ route('admin.pacientes.actualizarDatos', $paciente->id) }}", {
+                                                                    method: 'PUT',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                                    },
+                                                                    body: JSON.stringify({
+                                                                        nombre,
+                                                                        apellido
+                                                                    })
+                                                                })
+                                                            .then(response => {
+                                                                if (!response.ok) throw new Error(
+                                                                    'Error al guardar los datos'
+                                                                    );
+                                                                return response.json();
+                                                            })
+                                                            .catch(error => {
+                                                                Swal.showValidationMessage(
+                                                                    `Error: ${error}`);
+                                                            });
+                                                    }
+                                                }).then(result => {
+                                                    if (result.isConfirmed) {
+                                                        Swal.fire({
+                                                            title: 'Datos actualizados',
+                                                            icon: 'success',
+                                                            timer: 1500,
+                                                            showConfirmButton: false,
+                                                            allowOutsideClick: false,
+                                                            allowEscapeKey: false
+                                                        }).then(() => {
+                                                            mostrarModalAtencion(result.value
+                                                                .paciente);
+                                                        });
+                                                    }
+                                                    if (result.dismiss === Swal.DismissReason.cancel) {
+                                                        mostrarModalAtencion(@json($paciente));
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    });
+                                }
+
+                                // Función para reabrir el modal principal luego de editar
                                 function mostrarModalAtencion(paciente) {
                                     Swal.fire({
                                         title: 'Paciente ya registrado',
                                         icon: 'info',
                                         html: `
-                                <div style="text-align:center;">
-                                    <strong>Nombre:</strong> ${paciente.nombre} ${paciente.apellido}<br>
-                                    <strong>RUT:</strong> ${paciente.rut}<br>
-                                    <strong>Última atención:</strong> ${paciente.ultima_categoria ?? 'sin categorizar'}<br>
-                                    <strong>Total de atenciones:</strong> ${paciente.total_atenciones}<br><br>
-                                    <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
-                                        <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
-                                        <button id="btn-cancelar" style="background-color:#6c757d; color:white; padding:6px 12px; border:none; border-radius:4px;">Cancelar</button>
-                                        <button id="btn-editar" style="background-color:#EDE505; color:white; padding:6px 12px; border:none; border-radius:4px;">Editar datos</button>
-                                    </div>
-                                </div>
-                            `,
+                                            <div style="text-align:center;">
+                                                <strong>Nombre:</strong> ${paciente.nombre} ${paciente.apellido}<br>
+                                                <strong>RUT:</strong> ${paciente.rut}<br>
+                                                <strong>Última atención:</strong> ${paciente.ultima_categoria ?? 'sin categorizar'}<br>
+                                                <strong>Total de atenciones:</strong> ${paciente.total_atenciones}<br><br>
+                                                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+                                                    <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
+                                                    <button id="btn-cancelar" style="background-color:#6c757d; color:white; padding:6px 12px; border:none; border-radius:4px;">Cancelar</button>
+                                                    <button id="btn-editar" style="background-color:#EDE505; color:white; padding:6px 12px; border:none; border-radius:4px;">Editar datos</button>
+                                                </div>
+                                            </div>
+                                        `,
                                         showConfirmButton: false,
                                         allowOutsideClick: false,
                                         allowEscapeKey: false
                                     });
                                 }
-                            }
+                            });
                         </script>
                     @endif
                 </div>
@@ -283,80 +282,3 @@
     </div>
 @endsection
 
-<script>
-    function validarRut(rut) {
-        rut = rut.replace(/\./g, '').replace('-', '');
-        if (rut.length < 2) return false;
-
-        const cuerpo = rut.slice(0, -1);
-        const dv = rut.slice(-1).toUpperCase();
-
-        let suma = 0;
-        let multiplo = 2;
-
-        for (let i = cuerpo.length - 1; i >= 0; i--) {
-            suma += multiplo * parseInt(cuerpo.charAt(i));
-            multiplo = multiplo < 7 ? multiplo + 1 : 2;
-        }
-
-        const dvEsperado = 11 - (suma % 11);
-        const dvCalc = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
-
-        return dv === dvCalc;
-    }
-
-    function formatearRut(rut) {
-        rut = rut.replace(/\./g, '').replace(/-/g, '');
-        if (rut.length < 2) return rut;
-
-        const cuerpo = rut.slice(0, -1);
-        const dv = rut.slice(-1).toUpperCase();
-        return cuerpo + '-' + dv;
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const rutInput = document.getElementById('rut');
-        const errorSpan = document.getElementById('rut-error');
-
-        const nombreInput = document.getElementById('nombre');
-        const apellidoInput = document.getElementById('apellido');
-
-        nombreInput.addEventListener('input', function() {
-            nombreInput.value = nombreInput.value.toUpperCase();
-        });
-
-        apellidoInput.addEventListener('input', function() {
-            apellidoInput.value = apellidoInput.value.toUpperCase();
-        });
-
-        rutInput.addEventListener('input', function() {
-            const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
-            if (tipo === 'rut') {
-                if (!validarRut(rutInput.value)) {
-                    errorSpan.style.display = 'block';
-                    rutInput.classList.add('is-invalid');
-                } else {
-                    errorSpan.style.display = 'none';
-                    rutInput.classList.remove('is-invalid');
-                }
-            } else {
-                errorSpan.style.display = 'none';
-                rutInput.classList.remove('is-invalid');
-            }
-        });
-
-        rutInput.addEventListener('blur', function() {
-            const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
-            if (tipo === 'rut') {
-                rutInput.value = formatearRut(rutInput.value);
-            }
-        });
-
-        document.querySelectorAll('input[name="identificacion_tipo"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                errorSpan.style.display = 'none';
-                rutInput.classList.remove('is-invalid');
-            });
-        });
-    });
-</script>

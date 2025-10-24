@@ -16,6 +16,12 @@ class Paciente extends Model
     'estado_id'
     ];
 
+    // Esto asegura que el atributo 'activo' sea tratado como un booleano
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+
+
     public function categoria() {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }

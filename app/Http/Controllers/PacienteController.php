@@ -52,7 +52,7 @@ class PacienteController extends Controller
                     ->withInput()
                     ->with('paciente_existente', $pacienteExistente)
                     ->with('icono', 'info')
-                    ->with('mensaje', 'Este paciente está inactivo. ¿Deseas reactivarlo y registrar una nueva atención?');
+                    ->with('mensaje', 'Este paciente ya existe en nuestros registros. ¿Deseas registrar una nueva atención?');
             }
 
             // Define los estados que se consideran como atención activa, esto se usará para filtrar las atenciones del paciente
@@ -68,7 +68,7 @@ class PacienteController extends Controller
                     ->withInput()
                     ->with('paciente_existente', $pacienteExistente)
                     ->with('icono', 'warning')
-                    ->with('mensaje', 'Este paciente ya tiene una atención activa. No se puede registrar una nueva atención.');
+                    ->with('mensaje', 'Este paciente esta en atención. No se puede registrar una nueva atención.');
             }
 
             // Verifica si el formulario (modal) incluye la confirmacion para agregar una nueva atención
@@ -99,11 +99,9 @@ class PacienteController extends Controller
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
             'identificacion_tipo' => 'required|in:rut,pasaporte,ficha',
-            'rut' => [
-                'required',
-                'max:10',
-                Rule::unique('pacientes', 'rut'),
-            ],
+            'rut' => $tipo === 'rut'
+                ? ['required', 'max:10', Rule::unique('pacientes', 'rut'), new RutChileno]
+                : ['nullable', 'max:30'],
         ];
 
         //validación adicional si el tipo es RUT
@@ -277,5 +275,15 @@ class PacienteController extends Controller
             ->with('mensaje', 'Registro Eliminado!')
             ->with('icono', 'warning');
     }
+
+    public function checkPacientesSinCategorizar()
+    {
+        $cantidad = Paciente::whereNull('categoria_id')->count();
+
+        return response()->json([
+            'nuevos' => $cantidad,
+        ]);
+    }
+
     
 }

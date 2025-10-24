@@ -8,10 +8,13 @@
             Tiempo de Espera para Atención Urgencia Adulto
         </h1>
 
-        <div class="alert alert-danger text-center fs-3 py-4 text-uppercase" style="background-color: #E82A2A; color: white; font-weight: 900;">
-            PACIENTE EN RIESGO VITAL, SU ESPERA PUEDE VERSE ENLENTECIDA
-        </div>
+        @if ($hayCriticos)
+            <div class="alert alert-danger text-center fs-3 py-4 text-uppercase" style="background-color: #E82A2A; color: white; font-weight: 900;">
+                PACIENTE EN RIESGO VITAL, SU ESPERA PUEDE VERSE ENLENTECIDA
+            </div>
+        @endif
     </div>
+    
 
     {{-- Bloques de ocupación en fila horizontal, fuera del contenedor --}}
     <div class="d-flex justify-content-center gap-4">

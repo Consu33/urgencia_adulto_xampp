@@ -14,6 +14,15 @@
                     <h3 class="card-title">Pacientes Registrados</h3>
                 </div>
                 <div class="card-body">
+                    <div class="mb-3">
+                        <label for="filtro-categoria" class="form-label">Filtro por Categoria</label>
+                        <select id="filtro-categoria" class="form-select" style="width: 200px;">
+                            <option value="">Todas</option>
+                            @foreach ($categorias as $categoria)
+                                <option value="{{ $categoria->codigo }}"> {{ $categoria->codigo }}</option>                                
+                            @endforeach
+                        </select>
+                    </div>
                     <table id="example1" class="table table-striped table-sm display nowrap compact" style="width:100%">
                         <thead style="background-color: #c0c0c0">
                             <tr>
@@ -22,6 +31,7 @@
                                 <td style="text-align:center">Nombre</td>
                                 <td style="text-align:center">Apellido</td>
                                 <td style="text-align:center">Categoría</td>
+                                <td style="text-align:center">Texto categoría</td>
                                 <td style="text-align:center">Estado</td>
                                 <td style="text-align:center">Acciones</td>
                                 <td style="text-align:center">Eliminación de Paciente</td>
@@ -39,10 +49,7 @@
                                     {{-- Categoría --}}
                                     <td style="text-align:center">
                                         @php
-                                            $categoriaSeleccionada = $categorias->firstWhere(
-                                                'id',
-                                                $paciente->categoria_id,
-                                            );
+                                            $categoriaSeleccionada = $categorias->firstWhere('id', $paciente->categoria_id);
                                             $colorClase = $categoriaSeleccionada
                                                 ? 'bg-' . str_replace('bg-', '', $categoriaSeleccionada->color)
                                                 : 'bg-light';
@@ -53,8 +60,7 @@
                                             onchange="actualizarEstado({{ $paciente->id }}); actualizarColor(this);"
                                             id="categoria-{{ $paciente->id }}"
                                             data-original="{{ $paciente->categoria_id }}">
-                                            <option value="" {{ is_null($paciente->categoria_id) ? 'selected' : '' }}
-                                                disabled> - </option>
+                                            <option value="" {{ is_null($paciente->categoria_id) ? 'selected' : '' }} disabled> - </option>
                                             @foreach ($categorias as $categoria)
                                                 <option value="{{ $categoria->id }}"
                                                     {{ $paciente->categoria_id == $categoria->id ? 'selected' : '' }}>
@@ -62,6 +68,11 @@
                                                 </option>
                                             @endforeach
                                         </select>
+                                    </td>
+
+                                    {{-- Texto de categoría oculto para filtro --}}
+                                    <td style="display:none; text-align:center;">
+                                        {{ optional($categoriaSeleccionada)->codigo }}
                                     </td>
 
                                     {{-- Estado --}}
@@ -149,7 +160,7 @@
                         </tbody>
                     </table>
 
-                    {{-- Scripts --}}
+                    {{-- Scripts actualizar paciente--}}
                     <script>
                         function actualizarEstado(pacienteId) {
                             const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
@@ -164,7 +175,7 @@
                             feedback.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span>`;
 
                             fetch(`/admin/pacientes/${pacienteId}/update-category`, {
-                                //fetch({{ url('admin/pacientes') }}/${pacienteId}/update-category, {
+                                //fetch('{{ url('admin/pacientes') }}/${pacienteId}/update-category,' {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -180,7 +191,7 @@
                                     return response.json();
                                 })
                                 .then(data => {
-                                    // ✅ Puedes mostrar el tiempo estimado si lo deseas
+                                    // tiempo estimado
                                     const mensaje = `✔️ Actualizado (${data.tiempoEstimado} min estimado)`;
                                     feedback.innerHTML = `<span class="text-success">✔️ Actualizado</span>`;
                                     setTimeout(() => {
@@ -197,8 +208,8 @@
                         }
                     </script>
 
+                    {{-- Colores dinámicos por categoría--}}
                     <script>
-                        // Colores dinámicos por categoría
                         const categoriaColores = {
                             @foreach ($categorias as $categoria)
                                 "{{ $categoria->id }}": "{{ str_replace('bg-', '', $categoria->color) }}",
@@ -235,8 +246,9 @@
                         });
                     </script>
 
+                    {{-- Función común para actualizar el DOM al recibir el evento--}}
                     <script>
-                        //  Función común para actualizar el DOM al recibir el evento
+                          
                         function actualizarVista(e) {
                             const pacienteId = e.paciente_id;
 
@@ -260,19 +272,20 @@
                     </script>
                     {{-- DataTable --}}
                     <script>
-                        $(document).ready(function() {
+                        $(document).ready(function () {
                             let table = $('#example1').DataTable({
                                 pageLength: 10,
                                 responsive: true,
                                 autoWidth: false,
-                                dom: '<"row mb-2"<"col-sm-6"B><"col-sm-6"f>>' + '<"row"<"col-sm-12"tr>>' +
+                                dom: '<"row mb-2"<"col-sm-6"B><"col-sm-6"f>>' +
+                                    '<"row"<"col-sm-12"tr>>' +
                                     '<"row mt-2"<"col-sm-5"i><"col-sm-7"p>>',
                                 language: {
                                     emptyTable: "No hay información",
-                                    info: "Mostrando _START_ a _END_ de _TOTAL_ Pacientes",
+                                    info: "Mostrando Inicio a Final de TOTAL Pacientes",
                                     infoEmpty: "Mostrando 0 a 0 de 0 Pacientes",
                                     infoFiltered: "(Filtrado de _MAX_ total Pacientes)",
-                                    lengthMenu: "Mostrar _MENU_ Pacientes",
+                                    lengthMenu: "Mostrar MENU Pacientes",
                                     loadingRecords: "Cargando...",
                                     processing: "Procesando...",
                                     search: "Buscador:",
@@ -289,19 +302,38 @@
                                         print: "Imprimir"
                                     }
                                 },
-                                buttons: [{
+                                buttons: [
+                                    {
                                         extend: 'collection',
                                         text: 'Reportes',
                                         buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
                                     },
                                     {
                                         extend: 'colvis',
-                                        text: 'Visor de columnas'
+                                        text: 'Visor de columnas',
+                                        columns: [0, 1, 2, 3, 4, 6, 7, 8] 
+                                    }
+                                ],
+                                columnDefs: [
+                                    {
+                                        targets: 5, // índice de la columna "Texto categoría"
+                                        visible: false,       // oculta la columna
+                                        searchable: true,     // permite que el filtro funcione
+                                        className: 'never',   // opcional: para marcarla como no visible
+                                        columnsToggle: false  //  excluye del botón "colvis"
                                     }
                                 ]
+
                             });
 
                             table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+
+                            // Filtro por categoría (fuera del objeto DataTable)
+                            $('#filtro-categoria').on('change', function () {
+                                const valor = $(this).val();
+                                const columnaTextoCategoria = 5;
+                                table.column(columnaTextoCategoria).search(valor).draw();
+                            });
                         });
                     </script>
                 </div>

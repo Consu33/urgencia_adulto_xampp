@@ -21,6 +21,15 @@
                 </div>
 
                 <div class="card-body">
+                    <div class="mb-3">
+                        <label for="filtro-categoria" class="form-label">Filtro por Categoria</label>
+                        <select id="filtro-categoria" class="form-select" style="width: 200px;">
+                            <option value="">Todas</option>
+                            @foreach ($categorias as $categoria)
+                                <option value="{{ $categoria->codigo }}"> {{ $categoria->codigo }}</option>                                
+                            @endforeach
+                        </select>
+                    </div>
                     <table id="example1" class="table table-striped table-sm display nowrap compact" style="width:100%">
                         <thead style="background-color: #c0c0c0">
                             <tr>
@@ -57,7 +66,7 @@
                                         '<"row mt-2"<"col-sm-5"i><"col-sm-7"p>>',
                                     language: {
                                         emptyTable: "No hay información",
-                                        info: "Mostrando _START_ a _END_ de _TOTAL_ Pacientes",
+                                        info: "Mostrando Inicio a Final del Total Pacientes",
                                         infoEmpty: "Mostrando 0 a 0 de 0 Pacientes",
                                         infoFiltered: "(Filtrado de _MAX_ total Pacientes)",
                                         lengthMenu: "Mostrar _MENU_ Pacientes",
@@ -90,6 +99,13 @@
                                 });
 
                                 table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+                                
+                                // Filtro por categoría
+                                $('#filtro-categoria').on('change', function () {
+                                    const valor = $(this).val();
+                                    const columnaCategoria = 4; // índice de columna de categorización
+                                    table.column(columnaCategoria).search(valor).draw();
+                                });
                             });
                         </script>                        
                     @endpush
@@ -97,9 +113,4 @@
             </div>
         </div>
     </div>
-    <script>
-        setTimeout(function () {
-            location.reload();
-        }, 5000); // recarga después de 5 segundos
-    </script>
 @endsection

@@ -229,7 +229,7 @@
                                 language: {
                                     emptyTable: "No hay información",
                                     info: "Mostrando _START_ a _END_ de _TOTAL_ Usuarios-TV",
-                                    infoEmpty: "Mostrando 0 a 0 de 0 Enfermeros",
+                                    infoEmpty: "Mostrando 0 a 0 de 0 Usuarios-TV",
                                     infoFiltered: "(Filtrado de _MAX_ total Usuarios-TV)",
                                     lengthMenu: "Mostrar _MENU_ Usuarios-TV",
                                     loadingRecords: "Cargando...",
