@@ -75,18 +75,20 @@
                             </div>
                             {{-- Estados dentro de la categoría --}}
                             @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
-                                {{-- Cálculo de variables para la visualización --}}
-                                @php
-                                    $estadoSlug = Str::slug($estadoNombre);
-                                    $espera = $estadoData['promedio'];
-                                    $umbral = $categoria['umbrales'];
-                                    $color =
-                                        $espera > $umbral
-                                            ? 'danger'
-                                            : ($espera > $umbral * 0.7
-                                                ? 'warning'
-                                                : 'success');
-                                @endphp
+                                {{-- Omitir visualización de "en atencion" para ESI 1 --}}
+                                @if (!($categoria['codigo'] === 'ESI 1' && Str::lower(trim($estadoNombre)) === 'en espera de atencion'))
+                                    {{-- Cálculo de variables para la visualización --}}
+                                    @php
+                                        $estadoSlug = Str::slug($estadoNombre);
+                                        $espera = $estadoData['promedio'];
+                                        $umbral = $categoria['umbrales'];
+                                        $color =
+                                            $espera > $umbral
+                                                ? 'danger'
+                                                : ($espera > $umbral * 0.7
+                                                    ? 'warning'
+                                                    : 'success');
+                                    @endphp
                                 {{-- Tarjeta de estado --}}
                                 <div class="info-box d-flex bg-light text-dark rounded mb-3 shadow"
                                     id="card-{{ Str::slug($categoria['codigo']) }}-{{ $estadoSlug }}">
@@ -100,6 +102,7 @@
                                         </span>
                                         {{-- Detalles del estado --}}
                                         <div>
+                                            {{-- ocultar los div en caso de querer visualizar alguna caracteristica --}}
                                             <div class="fs-5 fw-bold text-uppercase">{{ $estadoNombre }}</div>
                                             <div class="fs-3 fw-bold">{{ $estadoData['cantidad'] }} pacientes</div>
                                             {{-- Tiempo de espera promedio --}}
@@ -122,6 +125,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>

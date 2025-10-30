@@ -337,17 +337,36 @@
             </div>
         </aside>
 
-        @if (session('mensaje') && session('icono'))
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "{{ session('icono') }}",
-                    title: "{{ session('mensaje') }}",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-            </script>
+        {{-- Mostrar alertas SweetAlert --}}
+       @if (session('mensaje') && session('icono'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const rutaActual = window.location.pathname;
+                const mensaje = "{{ session('mensaje') }}";
+
+                // Evita mostrar el toast en index si el mensaje es el de paciente registrado
+                const esIndex = rutaActual.includes('/admin/pacientes');
+                const esMensajePaciente = mensaje.includes('Paciente registrado exitosamente');
+
+                if (!(esIndex && esMensajePaciente)) {
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "{{ session('icono') }}",
+                        title: mensaje,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'swal2-border-radius'
+                        }
+                    });
+                }
+            });
+        </script>
         @endif
+
+
 
         <div class="content-wrapper">
             <br>
@@ -366,9 +385,6 @@
         </aside>
         <!-- /.control-sidebar -->
     </div>
-    <!-- ./wrapper -->
-
-    <!-- REQUIRED SCRIPTS -->
 
     <!-- Bootstrap 4 -->
     <script src="{{ url('plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -383,8 +399,6 @@
             new bootstrap.Tooltip(tooltipTriggerEl)
         })
     </script>
-
-
 
     <div id="global-spinner" class="spinner-border text-primary" role="status"
         style="display: none; 
@@ -540,33 +554,28 @@
         });
     </script>
 
-    {{-- Notificaciones para pacientes sin categorizar --}}
-    @if (session('mensaje') && session('icono'))
-        <script>
-            Swal.fire({
-                position: "center",
-                icon: "{{ session('icono') }}",
-                title: "{{ session('mensaje') }}",
-                showConfirmButton: false,
-                timer: 2000
-            });
-        </script>
-    @endif
-
+    {{-- Manejo de modales para confirmar eliminación con tecla Enter --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (localStorage.getItem('pacienteNuevo') === 'true') {
-                const alerta = document.createElement('div');
-                alerta.innerHTML = `
-                    <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; margin: 10px;">
-                        🟡 <strong>Paciente nuevo sin categorizar.</strong> Actualice la página para visualizar.
-                    </div>
-                `;
-                document.body.prepend(alerta);
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Escucha cuando cualquier modal se abre
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('shown.bs.modal', function () {
+                    // Enfoca el primer input para que el modal reciba el evento de teclado
+                    const input = modal.querySelector('input');
+                    if (input) input.focus();
 
-            // Al recargar, se borra el flag
-            localStorage.removeItem('pacienteNuevo');
+                    // Escucha la tecla Enter dentro del modal
+                    modal.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault(); // evita que se envíe el formulario por defecto
+                            const botonEliminar = modal.querySelector('.confirm-delete');
+                            if (botonEliminar) {
+                                botonEliminar.click();
+                            }
+                        }
+                    });
+                });
+            });
         });
     </script>
 

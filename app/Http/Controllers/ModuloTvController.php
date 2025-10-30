@@ -55,7 +55,7 @@ class ModuloTvController extends Controller
         $usuario->assignRole('panel');
 
         return redirect()->route('admin.moduloTV.index')
-            ->with('mensaje', 'Enfermero creado exitosamente.')
+            ->with('mensaje', 'UsuarioModuloTV creado exitosamente.')
             ->with('icono','success');
     }
     

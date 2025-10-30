@@ -55,19 +55,49 @@ class EstadoPacienteController extends Controller
         ]);
     }
 
-    public function condition()
-    {
-        //carga las relaciones necesarias para mostrar en la vista condition
-        $pacientes = Paciente::with(['categoria', 'estado'])
-            // filtra los pacientes activos = 1
-            ->where('activo', true)
-            //ejecuta la consulta y obtiene los resultados
-            ->get();
-        $categorias = Categoria::all();
-        $estados = Estado::all();
 
-        $this->authorize('admin.pacientes.condition');
-        return view('admin.condition', compact('pacientes', 'categorias', 'estados'));
+public function condition()
+{
+    // Capturamos las variables de sesión antes de cualquier operación
+    $pacienteNuevoId = session('paciente_nuevo_id');
+    $esReactivacion = session('paciente_reactivado', false); // Usamos session() en lugar de has()
+
+    $pacientes = Paciente::with([
+        'estado',
+        'atenciones' => fn($q) => $q->latest(),
+        'atenciones.categoria'
+    ])->where('activo', true)->get();
+
+    $categorias = Categoria::all();
+    $estados = Estado::all();
+
+    $this->authorize('admin.pacientes.condition');
+    
+    $vista = view('admin.condition', compact(
+        'pacientes', 
+        'categorias', 
+        'estados', 
+        'pacienteNuevoId',
+        'esReactivacion'
+    ));
+    
+    // Limpiamos las variables de sesión después de renderizar la vista
+    session()->forget(['paciente_nuevo_id', 'paciente_reactivado']);
+    
+    return $vista;
+}
+
+    /**
+     * Endpoint simple para que la vista `condition` consulte la última
+     * atención marcada como SIN CATEGORIZAR (guardada en cache por el
+     * controlador de atenciones). Esto permite notificar sin eventos ni
+     * redirecciones.
+     */
+    public function ultimaAtencionSinCategorizar()
+    {
+        $data = \Illuminate\Support\Facades\Cache::get('ultima_atencion_sin_categorizar');
+
+        return response()->json(['data' => $data]);
     }
 
     public function updateCategory(Request $request, $id)

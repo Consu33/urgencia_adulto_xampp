@@ -19,10 +19,20 @@
                         <select id="filtro-categoria" class="form-select" style="width: 200px;">
                             <option value="">Todas</option>
                             @foreach ($categorias as $categoria)
-                                <option value="{{ $categoria->codigo }}"> {{ $categoria->codigo }}</option>                                
+                                <option value="{{ $categoria->codigo }}"> {{ $categoria->codigo }}</option>
                             @endforeach
                         </select>
                     </div>
+                    @php
+                        $pacienteSinCategoria = $pacientes->first(function ($p) use ($pacienteNuevoId) {
+                            $ultima = $p->atenciones->sortByDesc('fecha_atencion')->first();
+                            $nombreCategoria = optional($ultima->categoria)->nombre;
+                            $esNuevoOReactivado = $p->id == $pacienteNuevoId || session()->has('paciente_reactivado');
+                            return $esNuevoOReactivado && 
+                                (is_null($nombreCategoria) || strtoupper($nombreCategoria) === 'SIN CATEGORIZAR');
+                        });
+                    @endphp
+
                     <table id="example1" class="table table-striped table-sm display nowrap compact" style="width:100%">
                         <thead style="background-color: #c0c0c0">
                             <tr>
@@ -39,6 +49,10 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $pacienteNuevoId = session()->get('paciente_nuevo_id');
+                            @endphp
+
                             @foreach ($pacientes as $paciente)
                                 <tr>
                                     <td style="text-align:center">{{ $loop->iteration }}</td>
@@ -46,15 +60,13 @@
                                     <td style="text-align:center">{{ $paciente->nombre }}</td>
                                     <td style="text-align:center">{{ $paciente->apellido }}</td>
 
-                                    {{-- Categoría --}}
+                                    {{-- Categoría actual --}}
                                     <td style="text-align:center">
                                         @php
-                                            $categoriaSeleccionada = $categorias->firstWhere('id', $paciente->categoria_id);
-                                            $colorClase = $categoriaSeleccionada
-                                                ? 'bg-' . str_replace('bg-', '', $categoriaSeleccionada->color)
+                                            $colorClase = optional($paciente->categoria)
+                                                ? 'bg-' . str_replace('bg-', '', $paciente->categoria->color)
                                                 : 'bg-light';
                                         @endphp
-
                                         <select name="categoria_id"
                                             class="form-select form-select-sm text-center rounded {{ $colorClase }}"
                                             onchange="actualizarEstado({{ $paciente->id }}); actualizarColor(this);"
@@ -72,18 +84,16 @@
 
                                     {{-- Texto de categoría oculto para filtro --}}
                                     <td style="display:none; text-align:center;">
-                                        {{ optional($categoriaSeleccionada)->codigo }}
+                                        {{ optional($paciente->categoria)->codigo }}
                                     </td>
 
-                                    {{-- Estado --}}
-
+                                    {{-- Estado actual --}}
                                     <td style="text-align:center">
                                         <select name="estado_id"
                                             class="form-select form-select-sm text-center rounded bg-light"
                                             onchange="actualizarEstado({{ $paciente->id }})"
                                             id="estado-{{ $paciente->id }}">
-                                            <option value="" {{ is_null($paciente->estado_id) ? 'selected' : '' }}
-                                                disabled> - </option>
+                                            <option value="" {{ is_null($paciente->estado_id) ? 'selected' : '' }} disabled> - </option>
                                             @foreach ($estados as $estado)
                                                 <option value="{{ $estado->id }}"
                                                     {{ $paciente->estado_id == $estado->id ? 'selected' : '' }}>
@@ -98,7 +108,6 @@
                                     </td>
 
                                     {{-- Modal de eliminacion --}}
-
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-danger btn-sm spinner-btn"
@@ -146,11 +155,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">Volver</button>
-                                                    <button type="submit" class="btn btn-danger">
-                                                        <i class="bi bi-trash"></i>Eliminar
-                                                    </button>
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                                                    <button type="submit" class="btn btn-danger confirm-delete"> <i class="bi bi-trash"></i>Eliminar</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -159,8 +165,35 @@
                             @endforeach
                         </tbody>
                     </table>
+                    {{-- Mensaje de paciente sin categorización al cargar la vista --}}
+                    @if ($pacienteSinCategoria)
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const Toast = Swal.mixin({
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Actualizar',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    customClass: {
+                                        popup: 'swal2-border-radius'
+                                    }
+                                });
 
-                    {{-- Scripts actualizar paciente--}}
+                                Toast.fire({
+                                    icon: 'info',
+                                    title: 'Paciente sin categorizar',
+                                    text: 'Haga clic en Actualizar para visualizar el panel correctamente.'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        location.reload();
+                                    }
+                                });
+                            });
+                        </script>
+                    @endif
+                    {{-- Scripts actualizar paciente --}}
                     <script>
                         function actualizarEstado(pacienteId) {
                             const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
@@ -174,8 +207,8 @@
                             estadoSelect.disabled = true;
                             feedback.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span>`;
 
-                            fetch(`/admin/pacientes/${pacienteId}/update-category`, {
-                                //fetch('{{ url('admin/pacientes') }}/${pacienteId}/update-category,' {
+                            //fetch(`/admin/pacientes/${pacienteId}/update-category`, {
+                                fetch(`{{ url('admin/pacientes') }}/${pacienteId}/update-category`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -208,7 +241,7 @@
                         }
                     </script>
 
-                    {{-- Colores dinámicos por categoría--}}
+                    {{-- Colores dinámicos por categoría --}}
                     <script>
                         const categoriaColores = {
                             @foreach ($categorias as $categoria)
@@ -246,9 +279,8 @@
                         });
                     </script>
 
-                    {{-- Función común para actualizar el DOM al recibir el evento--}}
+                    {{-- Función común para actualizar el DOM al recibir el evento --}}
                     <script>
-                          
                         function actualizarVista(e) {
                             const pacienteId = e.paciente_id;
 
@@ -270,9 +302,19 @@
                             }
                         }
                     </script>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            if (localStorage.getItem('pacienteNuevo') === 'true') {
+                                localStorage.removeItem('pacienteNuevo');
+                                location.reload(); // fuerza la recarga para que DataTables tenga el nuevo DOM
+                            }
+                        });
+                    </script>
+
                     {{-- DataTable --}}
                     <script>
-                        $(document).ready(function () {
+                        $(document).ready(function() {
                             let table = $('#example1').DataTable({
                                 pageLength: 10,
                                 responsive: true,
@@ -302,8 +344,7 @@
                                         print: "Imprimir"
                                     }
                                 },
-                                buttons: [
-                                    {
+                                buttons: [{
                                         extend: 'collection',
                                         text: 'Reportes',
                                         buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
@@ -311,25 +352,23 @@
                                     {
                                         extend: 'colvis',
                                         text: 'Visor de columnas',
-                                        columns: [0, 1, 2, 3, 4, 6, 7, 8] 
+                                        columns: [0, 1, 2, 3, 4, 6, 7, 8]
                                     }
                                 ],
-                                columnDefs: [
-                                    {
-                                        targets: 5, // índice de la columna "Texto categoría"
-                                        visible: false,       // oculta la columna
-                                        searchable: true,     // permite que el filtro funcione
-                                        className: 'never',   // opcional: para marcarla como no visible
-                                        columnsToggle: false  //  excluye del botón "colvis"
-                                    }
-                                ]
+                                columnDefs: [{
+                                    targets: 5, // índice de la columna "Texto categoría"
+                                    visible: false, // oculta la columna
+                                    searchable: true, // permite que el filtro funcione
+                                    className: 'never', // opcional: para marcarla como no visible
+                                    columnsToggle: false //  excluye del botón "colvis"
+                                }]
 
                             });
 
                             table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
 
                             // Filtro por categoría (fuera del objeto DataTable)
-                            $('#filtro-categoria').on('change', function () {
+                            $('#filtro-categoria').on('change', function() {
                                 const valor = $(this).val();
                                 const columnaTextoCategoria = 5;
                                 table.column(columnaTextoCategoria).search(valor).draw();
@@ -341,3 +380,93 @@
         </div>
     </div>
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let avisoMostrado = false;
+
+        function verificarFlagPacienteNuevo() {
+            if (localStorage.getItem('pacienteNuevo') === 'true' && !avisoMostrado) {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'swal2-border-radius'
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'info',
+                    title: 'Paciente sin categorizar',
+                    text: 'Actualice la página para visualizarlo correctamente en el panel.'
+                });
+
+                avisoMostrado = true;
+
+                // Elimina el flag para que no se repita
+                localStorage.removeItem('pacienteNuevo');
+            }
+        }
+
+        // Verifica cada segundo si el flag fue activado
+        setInterval(verificarFlagPacienteNuevo, 1000);
+    });
+</script>
+
+{{-- Polling para detectar nueva atención SIN CATEGORIZAR y mostrar SweetAlert sin redirigir --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const url = "{{ route('admin.pacientes.ultimaAtencionSinCategorizar') }}";
+        let lastNotified = localStorage.getItem('ultima_atencion_notificada');
+
+        function checkUltima() {
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(res => {
+                const item = res.data;
+                if (item && item.atencion_id) {
+                    const idStr = String(item.atencion_id);
+                    if (lastNotified !== idStr) {
+                        lastNotified = idStr;
+                        localStorage.setItem('ultima_atencion_notificada', idStr);
+
+                        // Mostrar Toast notification para paciente sin categorizar
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Actualizar',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: {
+                                popup: 'swal2-border-radius'
+                            }
+                        });
+
+                        Toast.fire({
+                            icon: 'info',
+                            title: 'Paciente sin categorizar',
+                            text: 'Actualizace la página para visualizar el panel correctamente.'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload();
+                            }
+                        });
+                    }
+                }
+            }).catch(err => {
+                // Silenciar errores de polling para no molestar la UI
+                // console.error('Polling ultimaAtencionSinCategorizar failed', err);
+            });
+        }
+
+        // Ejecutar inmediatamente y luego cada 5 segundos
+        checkUltima();
+        setInterval(checkUltima, 5000);
+    });
+</script>

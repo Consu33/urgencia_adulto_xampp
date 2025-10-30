@@ -87,6 +87,7 @@ Route::put('/admin/pacientes/{paciente}/actualizar-datos', [PacienteController::
 
 //Rutas para el EstadoPaciente
 Route::get('/admin/condition', [App\Http\Controllers\EstadoPacienteController::class, 'condition'])->name('admin.pacientes.condition')->middleware('auth', 'can:admin.pacientes.condition');
+Route::get('/admin/ultima-atencion-sin-categorizar', [App\Http\Controllers\EstadoPacienteController::class, 'ultimaAtencionSinCategorizar'])->name('admin.pacientes.ultimaAtencionSinCategorizar')->middleware('auth', 'can:admin.pacientes.condition');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.updateCategory')->middleware('auth', 'can:admin.pacientes.updateCategory');
 Route::get('/admin/panel', [App\Http\Controllers\EstadoPacienteController::class, 'index'])->name('admin.panel.index');
 Route::get('/admin/panel/dinamico', [App\Http\Controllers\EstadoPacienteController::class, 'panelDinamico'])->name('admin.panel.dinamico')->middleware('auth', 'can:admin.panel.index');

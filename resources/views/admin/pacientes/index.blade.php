@@ -114,3 +114,11 @@
         </div>
     </div>
 @endsection
+
+@if (session('paciente_nuevo'))
+<script>
+    localStorage.setItem('pacienteNuevo', 'true');
+</script>
+@endif
+
+

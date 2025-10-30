@@ -86,19 +86,27 @@
                     </form>
 
                     @if (session('paciente_existente'))
-                        @php $paciente = session('paciente_existente'); @endphp
-                        @php $atencion = $paciente->atenciones->last(); @endphp
-                        @php $estado = $atencion->estado->nombre ?? 'sin estado'; @endphp
-                        @php $activo = $paciente->activo ? 'activo' : 'inactivo'; @endphp
+                        @php
+                            $paciente = session('paciente_existente');
+                            $atencion = $paciente->atenciones->last();
+                            $estado = $atencion->estado->nombre ?? 'sin estado';
+                            $activo = $paciente->activo ? 'activo' : 'inactivo';     
+                            $categoriaNombre = optional($atencion->categoria)->nombre;                          
+                            $esSinCategorizar = is_null($categoriaNombre) || strtoupper($categoriaNombre) === 'SIN CATEGORIZAR';                                                    
+                            $textoCategoria = $esSinCategorizar ? 'SIN CATEGORIZAR' : $categoriaNombre;
+                        @endphp
+                        
 
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 const estadoPaciente = "{{ $estado }}";
                                 const estadoLogico = "{{ $activo }}";
+                                
 
                                 if (estadoLogico === 'activo' && ['Ingresado', 'En espera de atencion', 'En atencion',
-                                        'En espera de cama'
-                                    ].includes(estadoPaciente)) {
+                                        'En espera de cama'].includes(estadoPaciente)&&
+                                        "{{ $esSinCategorizar }}" === "1"
+                                    ) {
                                     // Modal de atención activa
                                     Swal.fire({
                                         icon: 'warning',
@@ -107,6 +115,7 @@
                                             <div style="text-align:center;">
                                                 <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
                                                 <strong>RUT:</strong> {{ $paciente->rut }}<br>
+                                                <strong>Última atención:</strong> {{ $textoCategoria }}<br>
                                                 <strong>Estado actual:</strong> {{ $estado }}<br><br>
                                                 Este paciente ya tiene una atención activa.<br>
                                                 No se puede registrar una nueva atención hasta que sea dado de alta.
@@ -125,7 +134,7 @@
                                             <div style="text-align:center;">
                                                 <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
                                                 <strong>RUT:</strong> {{ $paciente->rut }}<br>
-                                                <strong>Última atención:</strong> {{ optional($atencion->categoria)->nombre ?? 'sin categorizar' }}<br>
+                                                <strong>Última atención:</strong> {{ $textoCategoria }}<br>
                                                 <strong>Total de atenciones:</strong> {{ $paciente->atenciones->count() }}<br><br>
                                                 <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
                                                     <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
@@ -159,7 +168,6 @@
                                                         return response.text();
                                                     })
                                                     .then(() => {
-                                                        localStorage.setItem('pacienteNuevo', 'true');
                                                         Swal.fire({
                                                             title: 'Atención registrada',
                                                             icon: 'success',
@@ -219,7 +227,7 @@
                                                             .then(response => {
                                                                 if (!response.ok) throw new Error(
                                                                     'Error al guardar los datos'
-                                                                    );
+                                                                );
                                                                 return response.json();
                                                             })
                                                             .catch(error => {
@@ -281,4 +289,3 @@
         </div>
     </div>
 @endsection
-

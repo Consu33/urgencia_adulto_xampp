@@ -208,7 +208,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
-                                                    <button type="submit" class="btn btn-danger">
+                                                    <button type="submit" class="btn btn-danger confirm-delete">
                                                         <i class="bi bi-trash"></i> Registro Eliminado
                                                     </button>
                                                 </div>

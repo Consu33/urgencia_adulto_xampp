@@ -105,10 +105,9 @@
                             class="fas bi bi-file-person"></i></a>
                 </div>
             </div>
-        @endcan     
-        
-        
+        @endcan  
       
+        @can('admin.moduloTV.index')
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-Muted link">
                     <div class="inner">
@@ -122,6 +121,7 @@
                             class="nav-icon fas fa-tv"></i></a>
                 </div>
             </div>
+        @endcan
        
         
     </div>
