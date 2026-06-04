@@ -191,7 +191,7 @@ public function condition()
             'En espera de atencion',
             'En atencion',
         ];
-
+    // Definir cupos y umbrales base por categoría
         $cupos = [
             'ESI 1' => 2,
             'ESI 2' => 8,

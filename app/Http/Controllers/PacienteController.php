@@ -57,11 +57,25 @@ class PacienteController extends Controller
             }
 
             // Define los estados que se consideran como atención activa, esto se usará para filtrar las atenciones del paciente
-            $estadoActivo = ['Ingresado', 'En espera de atencion', 'En atencion', 'En espera de cama'];
-            //Consulta si el paciente tiene alguna atención en esos estados (usa whereHas para filtrar las atenciones segun el nombre del estado)
-            $atencionActiva = $pacienteExistente->atenciones()
-                ->whereHas('estado', fn($q) => $q->whereIn('nombre', $estadoActivo))
-                ->exists();
+           $ultimaAtencion = $pacienteExistente->atenciones()
+                ->with('estado')
+                ->latest('fecha_atencion')
+                ->first();
+
+            $atencionActiva = false;
+
+            if ($ultimaAtencion && $ultimaAtencion->estado) {
+
+                $atencionActiva = in_array(
+                    $ultimaAtencion->estado->nombre,
+                    [
+                        'Ingresado',
+                        'En espera de atencion',
+                        'En atencion',
+                        'En espera de cama'
+                    ]
+                );
+            }
 
             //si el paciente tiene una atencion activa, se bloquea el ingreso y se muestra una alerta de advertencia
             if ($atencionActiva) {
@@ -324,5 +338,32 @@ class PacienteController extends Controller
         ]);
     }
 
-    
+    public function buscarIdentificacion(Request $request)
+    {
+        $identificacion = trim($request->identificacion);
+        $tipo = $request->tipo;
+
+        if ($tipo === 'rut') {
+            $identificacion = RutHelper::normalizar($identificacion);
+        }
+
+        $paciente = Paciente::where('rut', $identificacion)
+            ->where('identificacion_tipo', $tipo)
+            ->first();
+
+        if (!$paciente) {
+            return response()->json([
+                'encontrado' => false
+            ]);
+        }
+
+        return response()->json([
+            'encontrado' => true,
+
+            'paciente' => [
+                'nombre' => $paciente->nombre,
+                'apellido' => $paciente->apellido,
+            ]
+        ]);
+    }
 }

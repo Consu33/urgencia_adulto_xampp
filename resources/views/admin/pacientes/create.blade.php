@@ -40,9 +40,10 @@
 
                                 <div class="form-group">
                                     <label for="rut">Identificación</label> <b>*</b>
-                                    <input type="text" name="rut" id="rut" class="form-control"
+                                    <input type="text" id="rut" name="rut" class="form-control"
                                         value="{{ old('rut') }}">
                                     <small id="rut-error" style="color:red; display:none;">RUT inválido</small>
+                                    <small id="paciente-encontrado" style="display:none;color:green;font-weight:bold;"> ✓ Paciente encontrado en la base de datos</small>
                                 </div>
                             </div>
                         </div>
@@ -50,9 +51,9 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form group">
-                                    <label for="">Nombre</label> <b>*</b>
-                                    <input type="text" value="{{ old('nombre') }}" name="nombre" class="form-control"
-                                        required>
+                                    <label for="nombre">Nombre</label> <b>*</b>
+                                    <input type="text" id="nombre" value="{{ old('nombre') }}" name="nombre"
+                                        class="form-control" required>
                                     @error('nombre')
                                         <small style="color:red">{{ $message }}</small>
                                     @enderror
@@ -63,9 +64,9 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form group">
-                                    <label for="">Apellido</label> <b>*</b>
-                                    <input type="text" value="{{ old('apellido') }}" name="apellido" class="form-control"
-                                        required>
+                                    <label for="apellido">Apellido</label> <b>*</b>
+                                    <input type="text" id="apellido" value="{{ old('apellido') }}" name="apellido"
+                                        class="form-control" required>
                                     @error('apellido')
                                         <small style="color:red">{{ $message }}</small>
                                     @enderror
@@ -117,8 +118,6 @@
                                             <div style="text-align:center;">
                                                 <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
                                                 <strong>RUT:</strong> {{ $paciente->rut }}<br>
-                                                <strong>Última atención:</strong> {{ $textoCategoria }}<br>
-                                                <strong>Estado actual:</strong> {{ $estado }}<br><br>
                                                 Este paciente ya tiene una atención activa.<br>
                                                 No se puede registrar una nueva atención hasta que sea dado de alta.
                                             </div>
@@ -136,8 +135,6 @@
                                             <div style="text-align:center;">
                                                 <strong>Nombre:</strong> {{ $paciente->nombre }} {{ $paciente->apellido }}<br>
                                                 <strong>RUT:</strong> {{ $paciente->rut }}<br>
-                                                <strong>Última atención:</strong> {{ $textoCategoria }}<br>
-                                                <strong>Total de atenciones:</strong> {{ $paciente->atenciones->count() }}<br><br>
                                                 <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
                                                     <button id="btn-confirmar" style="background-color:#28a745; color:white; padding:6px 12px; border:none; border-radius:4px;">Agregar nueva atención</button>
                                                     <button id="btn-cancelar" style="background-color:#6c757d; color:white; padding:6px 12px; border:none; border-radius:4px;">Cancelar</button>
@@ -420,6 +417,84 @@
                             });
                         </script>
                     @endif
+                    {{-- BÚSQUEDA AUTOMÁTICA DE PACIENTE --}}
+                    <script>
+                        $(document).ready(function() {
+
+                            let timeoutBusqueda;
+
+                            $('#rut').on('input', function() {
+
+                                clearTimeout(timeoutBusqueda);
+
+                                let identificacion = $(this).val().trim();
+                                let tipo = $('input[name="identificacion_tipo"]:checked').val();
+
+                                // Limpiar si está vacío o muy corto
+                                if (identificacion.length < 3) {
+
+                                    $('#nombre').val('');
+                                    $('#apellido').val('');
+
+                                    $('#paciente-encontrado').hide();
+
+                                    return;
+                                }
+
+                                timeoutBusqueda = setTimeout(function() {
+
+                                    $.ajax({
+                                        url: "{{ route('admin.pacientes.buscarIdentificacion') }}",
+                                        method: "GET",
+
+                                        data: {
+                                            identificacion: identificacion,
+                                            tipo: tipo
+                                        },
+
+                                        success: function(response) {
+
+                                            if (response.encontrado) {
+
+                                                $('#nombre').val(response.paciente.nombre);
+                                                $('#apellido').val(response.paciente.apellido);
+
+                                                $('#paciente-encontrado').show();
+
+                                            } else {
+
+                                                $('#nombre').val('');
+                                                $('#apellido').val('');
+
+                                                $('#paciente-encontrado').hide();
+                                            }
+                                        },
+
+                                        error: function(xhr, status, error) {
+
+                                            console.error('Error al buscar paciente:', error);
+
+                                            $('#paciente-encontrado').hide();
+                                        }
+                                    });
+
+                                }, 300);
+
+                            });
+
+                            // Limpiar todo cuando cambie el tipo de identificación
+                            $('input[name="identificacion_tipo"]').change(function() {
+
+                                $('#rut').val('');
+                                $('#nombre').val('');
+                                $('#apellido').val('');
+
+                                $('#paciente-encontrado').hide();
+
+                            });
+
+                        });
+                    </script>
                 </div>
             </div>
         </div>

@@ -84,6 +84,7 @@ Route::get('/admin/atenciones/create/{paciente_id}', [App\Http\Controllers\Atenc
 Route::post('/admin/atenciones', [App\Http\Controllers\AtencionController::class, 'store'])->name('admin.atenciones.store')->middleware('auth', 'can:admin.atenciones.store');
 Route::post('/admin/pacientes/{paciente}/atencion-rapida', [PacienteController::class, 'atencionRapida'])->name('admin.pacientes.atencionRapida');
 Route::put('/admin/pacientes/{paciente}/actualizar-datos', [PacienteController::class, 'actualizarDatos'])->name('admin.pacientes.actualizarDatos');
+Route::get('/pacientes/buscar-identificacion', [PacienteController::class, 'buscarIdentificacion'])->name('admin.pacientes.buscarIdentificacion');
 
 //Rutas para el EstadoPaciente
 Route::get('/admin/condition', [App\Http\Controllers\EstadoPacienteController::class, 'condition'])->name('admin.pacientes.condition')->middleware('auth', 'can:admin.pacientes.condition');
