@@ -355,7 +355,7 @@
                         icon: "{{ session('icono') }}",
                         title: mensaje,
                         showConfirmButton: false,
-                        timer: 3000,
+                        timer: 15000,
                         timerProgressBar: true,
                         customClass: {
                             popup: 'swal2-border-radius'

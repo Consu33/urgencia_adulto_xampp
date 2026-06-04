@@ -5,7 +5,7 @@
     {{-- Encabezado y alerta dentro del contenedor --}}
     <div>
         <h1 class="text-center fs-2 mb-5" style="font-weight: 900;">
-            Tiempo de Espera para Atención Urgencia Adulto
+           Prueba de Panel {{--Tiempo de Espera para Atención Urgencia Adulto --}}
         </h1>
 
         @if ($hayCriticos)
