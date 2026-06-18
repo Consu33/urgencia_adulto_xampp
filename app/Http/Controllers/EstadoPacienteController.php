@@ -110,6 +110,8 @@ public function condition()
 
         // Buscar paciente
         $paciente = Paciente::findOrFail($id);
+        //Obtener categoria para validar que no sea ESPERA-CAMA
+        $categoria = Categoria::find($validated['categoria_id']);
 
         // Guardar estado anterior (opcional para auditoría)
         $estadoAnterior = optional($paciente->estado)->nombre;
