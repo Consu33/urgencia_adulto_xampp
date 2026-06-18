@@ -50,7 +50,7 @@
 
                                         <select name="categoria_id"
                                             class="form-select form-select-sm text-center rounded {{ $colorClase }}"
-                                            onchange="actualizarEstado({{ $paciente->id }}); actualizarColor(this);"
+                                            onchange="actualizarCategoria({{ $paciente->id }}); actualizarColor(this);"
                                             id="categoria-{{ $paciente->id }}"
                                             data-original="{{ $paciente->categoria_id }}">
                                             <option value="" {{ is_null($paciente->categoria_id) ? 'selected' : '' }}
@@ -151,6 +151,27 @@
 
                     {{-- Scripts --}}
                     <script>
+                        function actualizarCategoria(pacienteId) {
+
+                            const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
+                            const estadoSelect = document.getElementById(`estado-${pacienteId}`);
+
+                            const categoriaTexto =
+                                categoriaSelect.options[categoriaSelect.selectedIndex].text.trim();
+
+                            if (categoriaTexto === 'ESI 1') {
+
+                                Array.from(estadoSelect.options).forEach(option => {
+
+                                    if (option.text.trim() === 'En atencion') {
+                                        estadoSelect.value = option.value;
+                                    }
+
+                                });
+                            }
+
+                            actualizarEstado(pacienteId);
+                        }
                         function actualizarEstado(pacienteId) {
                             const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
                             const estadoSelect = document.getElementById(`estado-${pacienteId}`);
