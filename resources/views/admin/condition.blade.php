@@ -95,10 +95,13 @@
                                             id="estado-{{ $paciente->id }}">
                                             <option value="" {{ is_null($paciente->estado_id) ? 'selected' : '' }} disabled> - </option>
                                             @foreach ($estados as $estado)
-                                                <option value="{{ $estado->id }}"
+                                               @if(!str_contains(strtolower($estado->nombre), 'cama'))
+                                                    <option value="{{ $estado->id }}"
                                                     {{ $paciente->estado_id == $estado->id ? 'selected' : '' }}>
                                                     {{ $estado->nombre }}
-                                                </option>
+                                                    </option>
+                                                @endif
+                                                
                                             @endforeach
                                         </select>
                                     </td>

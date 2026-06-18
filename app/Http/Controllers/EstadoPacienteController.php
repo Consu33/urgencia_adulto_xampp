@@ -288,7 +288,7 @@ public function condition()
         }
 
         // Procesar ESPERA-CAMA (sin impacto cruzado ni ESI 1)
-        $esperaCamaPacientes = $pacientes->where('estado.nombre', 'En espera de cama');
+        /*$esperaCamaPacientes = $pacientes->where('estado.nombre', 'En espera de cama');
         $cantidadCama = $esperaCamaPacientes->count();
         $tiempoEstimadoCama = $cantidadCama * ($umbralesBase['ESPERA-CAMA'] ?? 60);
 
@@ -307,7 +307,7 @@ public function condition()
                     'icono' => 'fas fa-procedures',
                 ]
             ]
-        ];
+        ];*/
 
         return ['categorias' => $data, 'hayCriticos' => $hayCriticos];
     }

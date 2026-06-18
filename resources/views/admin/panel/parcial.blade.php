@@ -70,7 +70,12 @@
                         </div>
                         {{-- Estados dentro de la categoría --}}
                         @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
+                        
                             {{-- Cálculo de variables para la visualización --}}
+                            @if (Str::lower(trim($estadoNombre)) === 'en espera de cama')
+                                @continue
+                            @endif
+                            
                             @php
                                 $estadoSlug = Str::slug($estadoNombre);
                                 $espera = $estadoData['promedio'];
@@ -96,8 +101,8 @@
                                         {{-- Tiempo de espera promedio --}}
                                         @unless (
                                             $categoria['codigo'] === 'ESI 1' ||
-                                                Str::lower(trim($estadoNombre)) === 'en atencion' ||
-                                                Str::lower(trim($estadoNombre)) === 'en espera de cama')
+                                                Str::lower(trim($estadoNombre)) === 'en atencion')
+                                                
                                             {{-- Formateo del tiempo estimado min a horas --}}    
                                             @php
                                                 $horas = floor($espera / 60);

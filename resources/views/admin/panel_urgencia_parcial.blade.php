@@ -75,6 +75,10 @@
                             </div>
                             {{-- Estados dentro de la categoría --}}
                             @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
+                            
+                            @if(Str::lower(trim($estadoNombre)) === 'en espera de cama')
+                                @continue
+                            @endif
                                 {{-- Omitir visualización de "en atencion" para ESI 1 --}}
                                 @if (!($categoria['codigo'] === 'ESI 1' && Str::lower(trim($estadoNombre)) === 'en espera de atencion'))
                                     {{-- Cálculo de variables para la visualización --}}
@@ -110,9 +114,7 @@
                                             
                                             @unless (
                                                 $categoria['codigo'] === 'ESI 1' ||
-                                                Str::lower(trim($estadoNombre)) === 'en atencion' ||
-                                                Str::lower(trim($estadoNombre)) === 'en espera de cama'
-                                            )
+                                                Str::lower(trim($estadoNombre)) === 'en atencion')
                                             {{-- Formateo del tiempo estimado min a horas --}}   
                                                 @php
                                                     $horas = floor($espera / 60);

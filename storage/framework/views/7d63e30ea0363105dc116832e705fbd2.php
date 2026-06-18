@@ -95,11 +95,14 @@
                                             id="estado-<?php echo e($paciente->id); ?>">
                                             <option value="" <?php echo e(is_null($paciente->estado_id) ? 'selected' : ''); ?> disabled> - </option>
                                             <?php $__currentLoopData = $estados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $estado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <option value="<?php echo e($estado->id); ?>"
+                                               <?php if(!str_contains(strtolower($estado->nombre), 'cama')): ?>
+                                                    <option value="<?php echo e($estado->id); ?>"
                                                     <?php echo e($paciente->estado_id == $estado->id ? 'selected' : ''); ?>>
                                                     <?php echo e($estado->nombre); ?>
 
-                                                </option>
+                                                    </option>
+                                                <?php endif; ?>
+                                                
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </td>
@@ -226,7 +229,15 @@
                                 })
                                 .then(data => {
                                     // tiempo estimado
-                                    const mensaje = `✔️ Actualizado (${data.tiempoEstimado} min estimado)`;
+                                    const horas = Math.floor(data.tiempo_estimado / 60);
+                                    const minutos = data.tiempo_estimado % 60;
+                                    // Formateo del tiempo estimado min a horas
+                                    const tiempoFormateado =
+                                        horas < 0 
+                                        ? `${horas} hora${horas > 1 ? 's' : ''}${minutos > 0 ? ` ${minutos} min` : ''}`
+                                        : `${minutos} min`;
+                                    
+                                    const mensaje = `✔️ Actualizado (${tiempoFormateado} estimado)`;
                                     feedback.innerHTML = `<span class="text-success">✔️ Actualizado</span>`;
                                     setTimeout(() => {
                                         feedback.innerHTML = '';

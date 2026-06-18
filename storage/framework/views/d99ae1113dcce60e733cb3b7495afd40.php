@@ -71,6 +71,10 @@
                             </div>
                             
                             <?php $__currentLoopData = $categoria['estados']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $estadoNombre => $estadoData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            
+                            <?php if(Str::lower(trim($estadoNombre)) === 'en espera de cama'): ?>
+                                <?php continue; ?>
+                            <?php endif; ?>
                                 
                                 <?php if(!($categoria['codigo'] === 'ESI 1' && Str::lower(trim($estadoNombre)) === 'en espera de atencion')): ?>
                                     
@@ -106,9 +110,7 @@
                                             
                                             <?php if (! (
                                                 $categoria['codigo'] === 'ESI 1' ||
-                                                Str::lower(trim($estadoNombre)) === 'en atencion' ||
-                                                Str::lower(trim($estadoNombre)) === 'en espera de cama'
-                                            )): ?>
+                                                Str::lower(trim($estadoNombre)) === 'en atencion')): ?>
                                                
                                                 <?php
                                                     $horas = floor($espera / 60);
