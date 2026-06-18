@@ -98,7 +98,21 @@
                                             $categoria['codigo'] === 'ESI 1' ||
                                                 Str::lower(trim($estadoNombre)) === 'en atencion' ||
                                                 Str::lower(trim($estadoNombre)) === 'en espera de cama')
-                                            <span class="fs-3 text-dark fw-bold"> {{ $espera }} min </span>
+                                            {{-- Formateo del tiempo estimado min a horas --}}    
+                                            @php
+                                                $horas = floor($espera / 60);
+                                                $minutos = $espera % 60;
+                                            @endphp
+                                            <span class="fs-3 text-dark fw-bold">
+                                                @if($horas > 0)
+                                                    {{ $horas }} hora{{ $horas > 1 ? 's' : '' }}
+                                                    @if ($minutos > 0)
+                                                        {{ $minutos }} min
+                                                    @endif
+                                                @else
+                                                    {{ $minutos }} min                                                         
+                                                @endif
+                                            </span>
                                         @endunless
                                         {{-- Barra de progreso --}}
                                         <div class="progress mt-2" style="height: 12px;">

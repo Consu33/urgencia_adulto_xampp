@@ -1,6 +1,4 @@
-@extends('layouts.admin')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="row">
         <h1>Categorización de Pacientes</h1>
     </div>
@@ -18,12 +16,12 @@
                         <label for="filtro-categoria" class="form-label">Filtro por Categoria</label>
                         <select id="filtro-categoria" class="form-select" style="width: 200px;">
                             <option value="">Todas</option>
-                            @foreach ($categorias as $categoria)
-                                <option value="{{ $categoria->codigo }}"> {{ $categoria->codigo }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($categoria->codigo); ?>"> <?php echo e($categoria->codigo); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
-                    @php
+                    <?php
                         $pacienteSinCategoria = $pacientes->first(function ($p) use ($pacienteNuevoId) {
                             $ultima = $p->atenciones->sortByDesc('fecha_atencion')->first();
                             $nombreCategoria = optional($ultima->categoria)->nombre;
@@ -31,7 +29,7 @@
                             return $esNuevoOReactivado && 
                                 (is_null($nombreCategoria) || strtoupper($nombreCategoria) === 'SIN CATEGORIZAR');
                         });
-                    @endphp
+                    ?>
 
                     <table id="example1" class="table table-striped table-sm display nowrap compact" style="width:100%">
                         <thead style="background-color: #c0c0c0">
@@ -49,69 +47,72 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php
+                            <?php
                                 $pacienteNuevoId = session()->get('paciente_nuevo_id');
-                            @endphp
+                            ?>
 
-                            @foreach ($pacientes as $paciente)
+                            <?php $__currentLoopData = $pacientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $paciente): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td style="text-align:center">{{ $loop->iteration }}</td>
-                                    <td style="text-align:center">{{ $paciente->rut }}</td>
-                                    <td style="text-align:center">{{ $paciente->nombre }}</td>
-                                    <td style="text-align:center">{{ $paciente->apellido }}</td>
+                                    <td style="text-align:center"><?php echo e($loop->iteration); ?></td>
+                                    <td style="text-align:center"><?php echo e($paciente->rut); ?></td>
+                                    <td style="text-align:center"><?php echo e($paciente->nombre); ?></td>
+                                    <td style="text-align:center"><?php echo e($paciente->apellido); ?></td>
 
-                                    {{-- Categoría actual --}}
+                                    
                                     <td style="text-align:center">
-                                        @php
+                                        <?php
                                             $colorClase = optional($paciente->categoria)
                                                 ? 'bg-' . str_replace('bg-', '', $paciente->categoria->color)
                                                 : 'bg-light';
-                                        @endphp
+                                        ?>
                                         <select name="categoria_id"
-                                            class="form-select form-select-sm text-center rounded {{ $colorClase }}"
-                                            onchange="actualizarEstado({{ $paciente->id }}); actualizarColor(this);"
-                                            id="categoria-{{ $paciente->id }}"
-                                            data-original="{{ $paciente->categoria_id }}">
-                                            <option value="" {{ is_null($paciente->categoria_id) ? 'selected' : '' }} disabled> - </option>
-                                            @foreach ($categorias as $categoria)
-                                                <option value="{{ $categoria->id }}"
-                                                    {{ $paciente->categoria_id == $categoria->id ? 'selected' : '' }}>
-                                                    {{ $categoria->codigo }}
+                                            class="form-select form-select-sm text-center rounded <?php echo e($colorClase); ?>"
+                                            onchange="actualizarEstado(<?php echo e($paciente->id); ?>); actualizarColor(this);"
+                                            id="categoria-<?php echo e($paciente->id); ?>"
+                                            data-original="<?php echo e($paciente->categoria_id); ?>">
+                                            <option value="" <?php echo e(is_null($paciente->categoria_id) ? 'selected' : ''); ?> disabled> - </option>
+                                            <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($categoria->id); ?>"
+                                                    <?php echo e($paciente->categoria_id == $categoria->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($categoria->codigo); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </td>
 
-                                    {{-- Texto de categoría oculto para filtro --}}
+                                    
                                     <td style="display:none; text-align:center;">
-                                        {{ optional($paciente->categoria)->codigo }}
+                                        <?php echo e(optional($paciente->categoria)->codigo); ?>
+
                                     </td>
 
-                                    {{-- Estado actual --}}
+                                    
                                     <td style="text-align:center">
                                         <select name="estado_id"
                                             class="form-select form-select-sm text-center rounded bg-light"
-                                            onchange="actualizarEstado({{ $paciente->id }})"
-                                            id="estado-{{ $paciente->id }}">
-                                            <option value="" {{ is_null($paciente->estado_id) ? 'selected' : '' }} disabled> - </option>
-                                            @foreach ($estados as $estado)
-                                                <option value="{{ $estado->id }}"
-                                                    {{ $paciente->estado_id == $estado->id ? 'selected' : '' }}>
-                                                    {{ $estado->nombre }}
+                                            onchange="actualizarEstado(<?php echo e($paciente->id); ?>)"
+                                            id="estado-<?php echo e($paciente->id); ?>">
+                                            <option value="" <?php echo e(is_null($paciente->estado_id) ? 'selected' : ''); ?> disabled> - </option>
+                                            <?php $__currentLoopData = $estados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $estado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($estado->id); ?>"
+                                                    <?php echo e($paciente->estado_id == $estado->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($estado->nombre); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </td>
 
                                     <td style="text-align:center">
-                                        <span id="feedback-{{ $paciente->id }}"></span>
+                                        <span id="feedback-<?php echo e($paciente->id); ?>"></span>
                                     </td>
 
-                                    {{-- Modal de eliminacion --}}
+                                    
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-danger btn-sm spinner-btn"
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $paciente->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal-<?php echo e($paciente->id); ?>"
                                                 title="Eliminar registros">
                                                 <i class="bi bi-trash"></i>
                                             </button>
@@ -119,16 +120,16 @@
                                     </td>
                                 </tr>
 
-                                <div class="modal fade" id="deleteModal-{{ $paciente->id }}" tabindex="-1"
-                                    aria-labelledby="deleteModalLabel-{{ $paciente->id }}" aria-hidden="true">
+                                <div class="modal fade" id="deleteModal-<?php echo e($paciente->id); ?>" tabindex="-1"
+                                    aria-labelledby="deleteModalLabel-<?php echo e($paciente->id); ?>" aria-hidden="true">
                                     <div class="modal-dialog">
-                                        <form action="{{ url('admin/pacientes/' . $paciente->id) }}" method="POST"
+                                        <form action="<?php echo e(url('admin/pacientes/' . $paciente->id)); ?>" method="POST"
                                             data-spinner-color="danger">
-                                            @csrf
-                                            @method('DELETE')
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h1 class="modal-title fs-5" id="deleteModalLabel-{{ $paciente->id }}">
+                                                    <h1 class="modal-title fs-5" id="deleteModalLabel-<?php echo e($paciente->id); ?>">
                                                         ¿Estás Seguro de Eliminar el Registro?</h1>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                         aria-label="Cerrar"></button>
@@ -138,7 +139,7 @@
                                                         <div class="col-md-12">
                                                             <div class="form-group">
                                                                 <label>Rut</label>
-                                                                <input type="text" value="{{ $paciente->rut }}"
+                                                                <input type="text" value="<?php echo e($paciente->rut); ?>"
                                                                     class="form-control" disabled>
                                                             </div>
                                                         </div>
@@ -148,7 +149,7 @@
                                                             <div class="form-group">
                                                                 <label>Nombre y Apellido</label>
                                                                 <input type="text"
-                                                                    value="{{ $paciente->nombre . ' ' . $paciente->apellido }}"
+                                                                    value="<?php echo e($paciente->nombre . ' ' . $paciente->apellido); ?>"
                                                                     class="form-control" disabled>
                                                             </div>
                                                         </div>
@@ -162,11 +163,11 @@
                                         </form>
                                     </div>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
-                    {{-- Mensaje de paciente sin categorización al cargar la vista --}}
-                    @if ($pacienteSinCategoria)
+                    
+                    <?php if($pacienteSinCategoria): ?>
                         <script>
                             document.addEventListener('DOMContentLoaded', function () {
                                 const Toast = Swal.mixin({
@@ -192,8 +193,8 @@
                                 });
                             });
                         </script>
-                    @endif
-                    {{-- Scripts actualizar paciente --}}
+                    <?php endif; ?>
+                    
                     <script>
                         function actualizarEstado(pacienteId) {
                             const categoriaSelect = document.getElementById(`categoria-${pacienteId}`);
@@ -208,11 +209,11 @@
                             feedback.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span>`;
 
                             //fetch(`/admin/pacientes/${pacienteId}/update-category`, {
-                                fetch(`{{ url('admin/pacientes') }}/${pacienteId}/update-category`, {
+                                fetch(`<?php echo e(url('admin/pacientes')); ?>/${pacienteId}/update-category`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                                     },
                                     body: JSON.stringify({
                                         categoria_id: categoriaId,
@@ -225,15 +226,7 @@
                                 })
                                 .then(data => {
                                     // tiempo estimado
-                                    const horas = Math.floor(data.tiempo_estimado / 60);
-                                    const minutos = data.tiempo_estimado % 60;
-                                    // Formateo del tiempo estimado min a horas
-                                    const tiempoFormateado =
-                                        horas < 0 
-                                        ? `${horas} hora${horas > 1 ? 's' : ''}${minutos > 0 ? ` ${minutos} min` : ''}`
-                                        : `${minutos} min`;
-                                    
-                                    const mensaje = `✔️ Actualizado (${tiempoFormateado} estimado)`;
+                                    const mensaje = `✔️ Actualizado (${data.tiempoEstimado} min estimado)`;
                                     feedback.innerHTML = `<span class="text-success">✔️ Actualizado</span>`;
                                     setTimeout(() => {
                                         feedback.innerHTML = '';
@@ -249,12 +242,12 @@
                         }
                     </script>
 
-                    {{-- Colores dinámicos por categoría --}}
+                    
                     <script>
                         const categoriaColores = {
-                            @foreach ($categorias as $categoria)
-                                "{{ $categoria->id }}": "{{ str_replace('bg-', '', $categoria->color) }}",
-                            @endforeach
+                            <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                "<?php echo e($categoria->id); ?>": "<?php echo e(str_replace('bg-', '', $categoria->color)); ?>",
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         };
 
                         function actualizarColor(select) {
@@ -287,7 +280,7 @@
                         });
                     </script>
 
-                    {{-- Función común para actualizar el DOM al recibir el evento --}}
+                    
                     <script>
                         function actualizarVista(e) {
                             const pacienteId = e.paciente_id;
@@ -320,7 +313,7 @@
                         });
                     </script>
 
-                    {{-- DataTable --}}
+                    
                     <script>
                         $(document).ready(function() {
                             let table = $('#example1').DataTable({
@@ -387,7 +380,7 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -424,10 +417,10 @@
     });
 </script>
 
-{{-- Polling para detectar nueva atención SIN CATEGORIZAR y mostrar SweetAlert sin redirigir --}}
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const url = "{{ route('admin.pacientes.ultimaAtencionSinCategorizar') }}";
+        const url = "<?php echo e(route('admin.pacientes.ultimaAtencionSinCategorizar')); ?>";
         let lastNotified = localStorage.getItem('ultima_atencion_notificada');
 
         function checkUltima() {
@@ -478,3 +471,4 @@
         setInterval(checkUltima, 5000);
     });
 </script>
+<?php echo $__env->make('layouts.admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\urgencia_hfbc\resources\views/admin/condition.blade.php ENDPATH**/ ?>

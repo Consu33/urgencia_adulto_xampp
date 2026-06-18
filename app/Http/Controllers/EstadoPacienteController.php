@@ -194,7 +194,7 @@ public function condition()
     // Definir cupos y umbrales base por categoría
         $cupos = [
             'ESI 1' => 2,
-            'ESI 2' => 8,
+            'ESI 2' => 24,
             'ESI 3' => 50,
             'ESI 4' => 7,
             'ESI 5' => 4,
