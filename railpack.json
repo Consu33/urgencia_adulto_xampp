@@ -7,7 +7,6 @@
         "bison",
         "re2c",
         "pkg-config",
-
         "libcurl4-openssl-dev",
         "libbz2-dev",
         "zlib1g-dev",
@@ -16,16 +15,21 @@
         "libzip-dev",
         "libonig-dev",
         "libsqlite3-dev",
-
         "libgd-dev",
         "libavif-dev",
         "libwebp-dev",
         "libjpeg-dev",
         "libpng-dev",
         "libfreetype6-dev",
-        "libxpm-dev"
+        "libxpm-dev",
+        "libpq-dev"
     ],
     "packages": {
         "php": "8.2"
+    },
+    "deploy": {
+        "aptPackages": [
+            "libpq5"
+        ]
     }
 }
