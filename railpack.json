@@ -3,7 +3,15 @@
     "provider": "php",
     "buildAptPackages": [
         "bison",
-        "re2c"
+        "re2c",
+        "pkg-config",
+        "libcurl4-openssl-dev",
+        "libbz2-dev",
+        "zlib1g-dev",
+        "libxml2-dev",
+        "libssl-dev",
+        "libzip-dev",
+        "libonig-dev"
     ],
     "packages": {
         "php": "8.2"
