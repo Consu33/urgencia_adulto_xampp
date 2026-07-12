@@ -2,16 +2,28 @@
     "$schema": "https://schema.railpack.com",
     "provider": "php",
     "buildAptPackages": [
+        "build-essential",
+        "autoconf",
         "bison",
         "re2c",
         "pkg-config",
+
         "libcurl4-openssl-dev",
         "libbz2-dev",
         "zlib1g-dev",
         "libxml2-dev",
         "libssl-dev",
         "libzip-dev",
-        "libonig-dev"
+        "libonig-dev",
+        "libsqlite3-dev",
+
+        "libgd-dev",
+        "libavif-dev",
+        "libwebp-dev",
+        "libjpeg-dev",
+        "libpng-dev",
+        "libfreetype6-dev",
+        "libxpm-dev"
     ],
     "packages": {
         "php": "8.2"
