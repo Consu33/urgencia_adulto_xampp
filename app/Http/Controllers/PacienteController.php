@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Rules\RutChileno;
 use App\Models\EliminacionPaciente;
 use App\Models\Atencion;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use App\Helpers\RutHelper;
 
@@ -53,29 +52,15 @@ class PacienteController extends Controller
                     ->withInput()
                     ->with('paciente_existente', $pacienteExistente)
                     ->with('icono', 'info')
-                    ->with('mensaje', 'Este paciente ya existe en nuestros registros. ¿Deseas registrar una nueva atención?');
+                    ->with('mensaje', 'Este paciente está inactivo. ¿Deseas reactivarlo y registrar una nueva atención?');
             }
 
             // Define los estados que se consideran como atención activa, esto se usará para filtrar las atenciones del paciente
-           $ultimaAtencion = $pacienteExistente->atenciones()
-                ->with('estado')
-                ->latest('fecha_atencion')
-                ->first();
-
-            $atencionActiva = false;
-
-            if ($ultimaAtencion && $ultimaAtencion->estado) {
-
-                $atencionActiva = in_array(
-                    $ultimaAtencion->estado->nombre,
-                    [
-                        'Ingresado',
-                        'En espera de atencion',
-                        'En atencion',
-                        'En espera de cama'
-                    ]
-                );
-            }
+            $estadoActivo = ['Ingresado', 'En espera de atencion', 'En atencion', 'En espera de cama'];
+            //Consulta si el paciente tiene alguna atención en esos estados (usa whereHas para filtrar las atenciones segun el nombre del estado)
+            $atencionActiva = $pacienteExistente->atenciones()
+                ->whereHas('estado', fn($q) => $q->whereIn('nombre', $estadoActivo))
+                ->exists();
 
             //si el paciente tiene una atencion activa, se bloquea el ingreso y se muestra una alerta de advertencia
             if ($atencionActiva) {
@@ -83,29 +68,19 @@ class PacienteController extends Controller
                     ->withInput()
                     ->with('paciente_existente', $pacienteExistente)
                     ->with('icono', 'warning')
-                    ->with('mensaje', 'Este paciente esta en atención. No se puede registrar una nueva atención.');
+                    ->with('mensaje', 'Este paciente ya tiene una atención activa. No se puede registrar una nueva atención.');
             }
 
             // Verifica si el formulario (modal) incluye la confirmacion para agregar una nueva atención
             if ($request->has('confirmar_atencion')) {
                 // Si se confirma, crea una nueva atención para el paciente existente
-                $atencion = Atencion::create([
+                Atencion::create([
                     'paciente_id' => $pacienteExistente->id,
                     'estado_id' => $pacienteExistente->estado_id,
                     'categoria_id' => null,
                     'fecha_atencion' => now(),
                     'observaciones' => 'Atención automática al reingresar paciente',
                 ]);
-
-                // Guardar en cache para notificar a la vista condition
-                    Cache::put('ultima_atencion_sin_categorizar', [
-                        'atencion_id' => $atencion->id,
-                        'paciente_id' => $pacienteExistente->id,
-                        'nombre' => $pacienteExistente->nombre,
-                        'apellido' => $pacienteExistente->apellido,
-                        'rut' => $pacienteExistente->rut,
-                        'fecha' => $atencion->fecha_atencion,
-                    ], now()->addMinutes(60));
 
                 return redirect()->route('admin.pacientes.index')
                     ->with('mensaje', 'Atención registrada correctamente para paciente existente.')
@@ -124,9 +99,11 @@ class PacienteController extends Controller
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
             'identificacion_tipo' => 'required|in:rut,pasaporte,ficha',
-            'rut' => $tipo === 'rut'
-                ? ['required', 'max:10', Rule::unique('pacientes', 'rut'), new RutChileno]
-                : ['nullable', 'max:30'],
+            'rut' => [
+                'required',
+                'max:10',
+                Rule::unique('pacientes', 'rut'),
+            ],
         ];
 
         //validación adicional si el tipo es RUT
@@ -145,15 +122,13 @@ class PacienteController extends Controller
         $estadoInicial = Estado::where('nombre', 'ingresado')->first();
         $categoriaInicial = Categoria::where('nombre', 'SIN CATEGORIZAR')->first();
 
-        // Verificar si el usuario ya existe, si no, crearlo
-        $usuario = User::firstOrCreate(
-            ['rut' => $rutNormalizado],
-            [
-                'name' => strtoupper($request->nombre),
-                'apellido' => strtoupper($request->apellido),
-                'password' => bcrypt('')
-            ]
-        );
+        // Crear usuario y asignar rol
+        $usuario = new User();
+        $usuario->name = strtoupper($request->nombre);
+        $usuario->apellido = strtoupper($request->apellido);
+        $usuario->rut = $rutNormalizado; 
+        $usuario->password = bcrypt('');
+        $usuario->save();
 
         $paciente = new Paciente();
         $paciente->nombre = strtoupper($request->nombre);
@@ -170,22 +145,9 @@ class PacienteController extends Controller
             'categoria_id' => null,
             'fecha_atencion' => now(),
             'observaciones' => 'Paciente nuevo con atención inicial automática',
-        ]);    
+        ]);
 
-        // Guardar en cache para notificar a la vista condition sobre nueva atención sin categorizar
-        $atencionNueva = Atencion::where('paciente_id', $paciente->id)->latest('fecha_atencion')->first();
-        if ($atencionNueva) {
-            Cache::put('ultima_atencion_sin_categorizar', [
-                'atencion_id' => $atencionNueva->id,
-                'paciente_id' => $paciente->id,
-                'nombre' => $paciente->nombre,
-                'apellido' => $paciente->apellido,
-                'rut' => $paciente->rut,
-                'fecha' => $atencionNueva->fecha_atencion,
-            ], now()->addMinutes(60));
-        }
-
-        session()->flash('paciente_nuevo', true);
+        
 
         return redirect()->route('admin.pacientes.index')
             ->with('mensaje', 'Paciente registrado exitosamente con atención inicial.')
@@ -209,32 +171,19 @@ class PacienteController extends Controller
         }
 
         $estadoIngresado = Estado::where('nombre', 'ingresado')->first();
-        $categoriaSinCategorizar = Categoria::where('nombre', 'SIN CATEGORIZAR')->first();
 
         // Actualiza estado y categoría del paciente
         $paciente->estado_id = $estadoIngresado?->id;
-        $paciente->categoria_id = $categoriaSinCategorizar?->id;
+        $paciente->categoria_id = null;
         $paciente->save();
 
-        $ultimaAt = Atencion::create([
+        Atencion::create([
             'paciente_id' => $paciente->id,
             'estado_id' => Estado::where('nombre', 'ingresado')->first()?->id,
-            'categoria_id' => Categoria::where('nombre', 'SIN CATEGORIZAR')->first()?->id,
+            'categoria_id' => null,
             'fecha_atencion' => now(),
             'observaciones' => 'Paciente en base de datos, atención rápida registrada',
         ]);
-
-        // Guardar en cache para notificar a la vista condition
-        if ($ultimaAt) {
-            Cache::put('ultima_atencion_sin_categorizar', [
-                'atencion_id' => $ultimaAt->id,
-                'paciente_id' => $paciente->id,
-                'nombre' => $paciente->nombre,
-                'apellido' => $paciente->apellido,
-                'rut' => $paciente->rut,
-                'fecha' => $ultimaAt->fecha_atencion,
-            ], now()->addMinutes(60));
-        }
 
         return redirect()->route('admin.pacientes.index')
             ->with('mensaje', 'Atención registrada exitosamente.')
@@ -328,42 +277,5 @@ class PacienteController extends Controller
             ->with('mensaje', 'Registro Eliminado!')
             ->with('icono', 'warning');
     }
-
-    public function checkPacientesSinCategorizar()
-    {
-        $cantidad = Paciente::whereNull('categoria_id')->count();
-
-        return response()->json([
-            'nuevos' => $cantidad,
-        ]);
-    }
-
-    public function buscarIdentificacion(Request $request)
-    {
-        $identificacion = trim($request->identificacion);
-        $tipo = $request->tipo;
-
-        if ($tipo === 'rut') {
-            $identificacion = RutHelper::normalizar($identificacion);
-        }
-
-        $paciente = Paciente::where('rut', $identificacion)
-            ->where('identificacion_tipo', $tipo)
-            ->first();
-
-        if (!$paciente) {
-            return response()->json([
-                'encontrado' => false
-            ]);
-        }
-
-        return response()->json([
-            'encontrado' => true,
-
-            'paciente' => [
-                'nombre' => $paciente->nombre,
-                'apellido' => $paciente->apellido,
-            ]
-        ]);
-    }
+    
 }
