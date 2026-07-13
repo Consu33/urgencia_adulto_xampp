@@ -5,13 +5,16 @@
     {{-- Encabezado y alerta dentro del contenedor --}}
     <div>
         <h1 class="text-center fs-2 mb-5" style="font-weight: 900;">
-            Tiempo de Espera para Atención Urgencia Adulto
+           Prueba de Panel {{--Tiempo de Espera para Atención Urgencia Adulto --}}
         </h1>
 
-        <div class="alert alert-danger text-center fs-3 py-4 text-uppercase" style="background-color: #E82A2A; color: white; font-weight: 900;">
-            PACIENTE EN RIESGO VITAL, SU ESPERA PUEDE VERSE ENLENTECIDA
-        </div>
+        @if ($hayCriticos)
+            <div class="alert alert-danger text-center fs-3 py-4 text-uppercase" style="background-color: #E82A2A; color: white; font-weight: 900;">
+                PACIENTE EN RIESGO VITAL, SU ESPERA PUEDE VERSE ENLENTECIDA
+            </div>
+        @endif
     </div>
+    
 
     {{-- Bloques de ocupación en fila horizontal, fuera del contenedor --}}
     <div class="d-flex justify-content-center gap-4">
@@ -72,18 +75,24 @@
                             </div>
                             {{-- Estados dentro de la categoría --}}
                             @foreach ($categoria['estados'] as $estadoNombre => $estadoData)
-                                {{-- Cálculo de variables para la visualización --}}
-                                @php
-                                    $estadoSlug = Str::slug($estadoNombre);
-                                    $espera = $estadoData['promedio'];
-                                    $umbral = $categoria['umbrales'];
-                                    $color =
-                                        $espera > $umbral
-                                            ? 'danger'
-                                            : ($espera > $umbral * 0.7
-                                                ? 'warning'
-                                                : 'success');
-                                @endphp
+                            
+                            @if(Str::lower(trim($estadoNombre)) === 'en espera de cama')
+                                @continue
+                            @endif
+                                {{-- Omitir visualización de "en atencion" para ESI 1 --}}
+                                @if (!($categoria['codigo'] === 'ESI 1' && Str::lower(trim($estadoNombre)) === 'en espera de atencion'))
+                                    {{-- Cálculo de variables para la visualización --}}
+                                    @php
+                                        $estadoSlug = Str::slug($estadoNombre);
+                                        $espera = $estadoData['promedio'];
+                                        $umbral = $categoria['umbrales'];
+                                        $color =
+                                            $espera > $umbral
+                                                ? 'danger'
+                                                : ($espera > $umbral * 0.7
+                                                    ? 'warning'
+                                                    : 'success');
+                                    @endphp
                                 {{-- Tarjeta de estado --}}
                                 <div class="info-box d-flex bg-light text-dark rounded mb-3 shadow"
                                     id="card-{{ Str::slug($categoria['codigo']) }}-{{ $estadoSlug }}">
@@ -97,6 +106,7 @@
                                         </span>
                                         {{-- Detalles del estado --}}
                                         <div>
+                                            {{-- ocultar los div en caso de querer visualizar alguna caracteristica --}}
                                             <div class="fs-5 fw-bold text-uppercase">{{ $estadoNombre }}</div>
                                             <div class="fs-3 fw-bold">{{ $estadoData['cantidad'] }} pacientes</div>
                                             {{-- Tiempo de espera promedio --}}
@@ -104,10 +114,23 @@
                                             
                                             @unless (
                                                 $categoria['codigo'] === 'ESI 1' ||
-                                                Str::lower(trim($estadoNombre)) === 'en atencion' ||
-                                                Str::lower(trim($estadoNombre)) === 'en espera de cama'
-                                            )
-                                                <span class="fs-3 text-dark fw-bold"> {{ $espera }} min </span>
+                                                Str::lower(trim($estadoNombre)) === 'en atencion')
+                                            {{-- Formateo del tiempo estimado min a horas --}}   
+                                                @php
+                                                    $horas = floor($espera / 60);
+                                                    $minutos = $espera % 60;
+                                                @endphp
+
+                                                <span class="fs-3 text-dark fw-bold">
+                                                    @if($horas > 0)
+                                                        {{ $horas }} hora{{ $horas > 1 ? 's' : '' }}
+                                                        @if($minutos > 0)
+                                                            {{ $minutos }} min
+                                                        @endif
+                                                    @else
+                                                        {{ $minutos }} min
+                                                    @endif
+                                                </span>
                                             @endunless
 
                                             <div class="progress mt-2" style="height: 12px;">
@@ -119,6 +142,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>

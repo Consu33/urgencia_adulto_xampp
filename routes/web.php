@@ -77,15 +77,18 @@ Route::get('/admin/pacientes/{id}/edit', [App\Http\Controllers\PacienteControlle
 Route::put('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::class, 'update'])->name('admin.pacientes.update')->middleware('auth', 'can:admin.pacientes.update');
 Route::delete('/admin/pacientes/{id}', [App\Http\Controllers\PacienteController::class, 'destroy'])->name('admin.pacientes.destroy')->middleware('auth', 'can:admin.pacientes.destroy');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.update-category')->middleware('auth', 'can:admin.pacientes.condition');
+Route::get('/pacientes/sin-categorizar', [PacienteController::class, 'checkPacientesSinCategorizar']);
 
 //rutas de atenciones para pacientes ya en la bd
 Route::get('/admin/atenciones/create/{paciente_id}', [App\Http\Controllers\AtencionController::class, 'create'])->name('admin.atenciones.create')->middleware('auth', 'can:admin.atenciones.create');
 Route::post('/admin/atenciones', [App\Http\Controllers\AtencionController::class, 'store'])->name('admin.atenciones.store')->middleware('auth', 'can:admin.atenciones.store');
 Route::post('/admin/pacientes/{paciente}/atencion-rapida', [PacienteController::class, 'atencionRapida'])->name('admin.pacientes.atencionRapida');
 Route::put('/admin/pacientes/{paciente}/actualizar-datos', [PacienteController::class, 'actualizarDatos'])->name('admin.pacientes.actualizarDatos');
+Route::get('/pacientes/buscar-identificacion', [PacienteController::class, 'buscarIdentificacion'])->name('admin.pacientes.buscarIdentificacion');
 
 //Rutas para el EstadoPaciente
 Route::get('/admin/condition', [App\Http\Controllers\EstadoPacienteController::class, 'condition'])->name('admin.pacientes.condition')->middleware('auth', 'can:admin.pacientes.condition');
+Route::get('/admin/ultima-atencion-sin-categorizar', [App\Http\Controllers\EstadoPacienteController::class, 'ultimaAtencionSinCategorizar'])->name('admin.pacientes.ultimaAtencionSinCategorizar')->middleware('auth', 'can:admin.pacientes.condition');
 Route::post('/admin/pacientes/{id}/update-category', [App\Http\Controllers\EstadoPacienteController::class, 'updateCategory'])->name('admin.pacientes.updateCategory')->middleware('auth', 'can:admin.pacientes.updateCategory');
 Route::get('/admin/panel', [App\Http\Controllers\EstadoPacienteController::class, 'index'])->name('admin.panel.index');
 Route::get('/admin/panel/dinamico', [App\Http\Controllers\EstadoPacienteController::class, 'panelDinamico'])->name('admin.panel.dinamico')->middleware('auth', 'can:admin.panel.index');
@@ -100,4 +103,5 @@ Route::get('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::cla
 Route::get('/admin/moduloTV/{id}/edit', [App\Http\Controllers\ModuloTvController::class, 'edit'])->name('admin.moduloTV.edit')->middleware('auth', 'can:admin.moduloTV.edit');
 Route::put('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::class, 'update'])->name('admin.moduloTV.update')->middleware('auth', 'can:admin.moduloTV.update');
 Route::delete('/admin/moduloTV/{id}', [App\Http\Controllers\ModuloTvController::class, 'destroy'])->name('admin.moduloTV.destroy')->middleware('auth', 'can:admin.moduloTV.destroy');
+
 

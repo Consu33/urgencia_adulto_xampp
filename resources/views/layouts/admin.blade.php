@@ -315,9 +315,9 @@
                                     </li>
 
                                 </ul>
-                            </li>                            
+                            </li>
                         @endcan
-                        
+
 
                         <li class="nav-item">
                             <a href="{{ route('logout') }}" class="nav-link" style="background-color: #a9200e"
@@ -337,17 +337,36 @@
             </div>
         </aside>
 
-        @if (session('mensaje') && session('icono'))
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "{{ session('icono') }}",
-                    title: "{{ session('mensaje') }}",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-            </script>
+        {{-- Mostrar alertas SweetAlert --}}
+       @if (session('mensaje') && session('icono'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const rutaActual = window.location.pathname;
+                const mensaje = "{{ session('mensaje') }}";
+
+                // Evita mostrar el toast en index si el mensaje es el de paciente registrado
+                const esIndex = rutaActual.includes('/admin/pacientes');
+                const esMensajePaciente = mensaje.includes('Paciente registrado exitosamente');
+
+                if (!(esIndex && esMensajePaciente)) {
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "{{ session('icono') }}",
+                        title: mensaje,
+                        showConfirmButton: false,
+                        timer: 15000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'swal2-border-radius'
+                        }
+                    });
+                }
+            });
+        </script>
         @endif
+
+
 
         <div class="content-wrapper">
             <br>
@@ -366,9 +385,6 @@
         </aside>
         <!-- /.control-sidebar -->
     </div>
-    <!-- ./wrapper -->
-
-    <!-- REQUIRED SCRIPTS -->
 
     <!-- Bootstrap 4 -->
     <script src="{{ url('plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -384,8 +400,6 @@
         })
     </script>
 
-
-
     <div id="global-spinner" class="spinner-border text-primary" role="status"
         style="display: none; 
             width: 4rem; height: 4rem; 
@@ -396,7 +410,7 @@
         <span class="visually-hidden"></span>
     </div>
 
-
+    {{-- Overlay para desenfocar la página cuando el spinner está activo --}}
     <script>
         $(document).ready(function() {
             $('form').on('submit', function() {
@@ -464,7 +478,7 @@
 
         });
     </script>
-    // Manejo del evento pageshow para detectar navegación con el botón atrás
+    {{-- Manejo del evento pageshow para detectar navegación con el botón atrás --}}
     <script>
         window.addEventListener('pageshow', function(event) {
             if (event.persisted || performance.navigation.type === 2) {
@@ -475,7 +489,7 @@
         });
     </script>
 
-    // Validación RUT Chileno
+    {{-- Validación RUT Chileno --}}
     <script>
         function validarRut(rut) {
             rut = rut.replace(/\./g, '').replace('-', '');
@@ -501,22 +515,70 @@
         document.addEventListener('DOMContentLoaded', function() {
             const rutInput = document.getElementById('rut');
             const errorMsg = document.getElementById('rut-error');
+            const tipoRadios = document.querySelectorAll('input[name="identificacion_tipo"]');
 
-            rutInput.addEventListener('input', function() {
+            function validarRutEnTiempoReal() {
+                if (!rutInput) return;
+
                 const valor = rutInput.value.trim();
-                if (valor === '') {
+                const tipo = document.querySelector('input[name="identificacion_tipo"]:checked')?.value;
+
+                // Si no hay tipo, asumimos que es RUT
+                const esRut = tipo ? tipo === 'rut' : true;
+
+                if (!esRut) {
                     errorMsg.style.display = 'none';
+                    rutInput.classList.remove('is-invalid');
                     return;
                 }
 
-                if (validarRut(valor)) {
+                if (valor === '' || validarRut(valor)) {
                     errorMsg.style.display = 'none';
+                    rutInput.classList.remove('is-invalid');
                 } else {
                     errorMsg.style.display = 'block';
+                    rutInput.classList.add('is-invalid');
                 }
+            }
+
+            if (rutInput) {
+                rutInput.addEventListener('input', validarRutEnTiempoReal);
+                rutInput.addEventListener('blur', validarRutEnTiempoReal);
+            }
+
+            tipoRadios.forEach(radio => {
+                radio.addEventListener('change', validarRutEnTiempoReal);
+            });
+
+            validarRutEnTiempoReal();
+        });
+    </script>
+
+    {{-- Manejo de modales para confirmar eliminación con tecla Enter --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Escucha cuando cualquier modal se abre
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('shown.bs.modal', function () {
+                    // Enfoca el primer input para que el modal reciba el evento de teclado
+                    const input = modal.querySelector('input');
+                    if (input) input.focus();
+
+                    // Escucha la tecla Enter dentro del modal
+                    modal.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault(); // evita que se envíe el formulario por defecto
+                            const botonEliminar = modal.querySelector('.confirm-delete');
+                            if (botonEliminar) {
+                                botonEliminar.click();
+                            }
+                        }
+                    });
+                });
             });
         });
     </script>
+
 
     @stack('scripts')
 </body>
