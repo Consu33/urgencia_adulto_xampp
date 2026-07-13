@@ -51,7 +51,7 @@
                             <div class="col-md-12">
                                 <div class="form group">
                                     <label for="">Nombre</label> <b>*</b>
-                                    <input type="text" value="{{ old('nombre') }}" name="nombre" class="form-control"
+                                    <input type="text" id="nombre" value="{{ old('nombre') }}" name="nombre" class="form-control"
                                         required>
                                     @error('nombre')
                                         <small style="color:red">{{ $message }}</small>
@@ -64,7 +64,7 @@
                             <div class="col-md-12">
                                 <div class="form group">
                                     <label for="">Apellido</label> <b>*</b>
-                                    <input type="text" value="{{ old('apellido') }}" name="apellido" class="form-control"
+                                    <input type="text" id="apellido" value="{{ old('apellido') }}" name="apellido" class="form-control"
                                         required>
                                     @error('apellido')
                                         <small style="color:red">{{ $message }}</small>
@@ -285,78 +285,138 @@
 
 <script>
     function validarRut(rut) {
-        rut = rut.replace(/\./g, '').replace('-', '');
-        if (rut.length < 2) return false;
+        rut = rut.replace(/\./g, '').replace(/-/g, '').trim();
+
+        if (rut.length < 2) {
+            return false;
+        }
 
         const cuerpo = rut.slice(0, -1);
         const dv = rut.slice(-1).toUpperCase();
+
+        // Evita ejecutar el cálculo si el cuerpo contiene letras.
+        if (!/^\d+$/.test(cuerpo)) {
+            return false;
+        }
 
         let suma = 0;
         let multiplo = 2;
 
         for (let i = cuerpo.length - 1; i >= 0; i--) {
-            suma += multiplo * parseInt(cuerpo.charAt(i));
+            suma += multiplo * Number(cuerpo.charAt(i));
             multiplo = multiplo < 7 ? multiplo + 1 : 2;
         }
 
-        const dvEsperado = 11 - (suma % 11);
-        const dvCalc = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+        const resultado = 11 - (suma % 11);
 
-        return dv === dvCalc;
+        const dvCalculado =
+            resultado === 11
+                ? '0'
+                : resultado === 10
+                    ? 'K'
+                    : resultado.toString();
+
+        return dv === dvCalculado;
     }
 
     function formatearRut(rut) {
-        rut = rut.replace(/\./g, '').replace(/-/g, '');
-        if (rut.length < 2) return rut;
+        rut = rut.replace(/\./g, '').replace(/-/g, '').trim();
+
+        if (rut.length < 2) {
+            return rut;
+        }
 
         const cuerpo = rut.slice(0, -1);
         const dv = rut.slice(-1).toUpperCase();
-        return cuerpo + '-' + dv;
+
+        return `${cuerpo}-${dv}`;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const rutInput = document.getElementById('rut');
-        const errorSpan = document.getElementById('rut-error');
-
+    document.addEventListener('DOMContentLoaded', function () {
+        const identificacionInput = document.getElementById('rut');
+        const errorRut = document.getElementById('rut-error');
         const nombreInput = document.getElementById('nombre');
         const apellidoInput = document.getElementById('apellido');
+        const radiosTipo = document.querySelectorAll(
+            'input[name="identificacion_tipo"]'
+        );
 
-        nombreInput.addEventListener('input', function() {
-            nombreInput.value = nombreInput.value.toUpperCase();
+        function obtenerTipoIdentificacion() {
+            const seleccionado = document.querySelector(
+                'input[name="identificacion_tipo"]:checked'
+            );
+
+            return seleccionado ? seleccionado.value : null;
+        }
+
+        function limpiarErrorRut() {
+            errorRut.style.display = 'none';
+            identificacionInput.classList.remove('is-invalid');
+        }
+
+        function comprobarIdentificacion() {
+            const tipo = obtenerTipoIdentificacion();
+            const identificacion = identificacionInput.value.trim();
+
+            // Pasaporte y ficha nunca se validan como RUT.
+            if (tipo !== 'rut') {
+                limpiarErrorRut();
+                return true;
+            }
+
+            if (identificacion === '') {
+                limpiarErrorRut();
+                return false;
+            }
+
+            if (!validarRut(identificacion)) {
+                errorRut.style.display = 'block';
+                identificacionInput.classList.add('is-invalid');
+                return false;
+            }
+
+            limpiarErrorRut();
+            return true;
+        }
+
+        identificacionInput.addEventListener('input', function () {
+            comprobarIdentificacion();
         });
 
-        apellidoInput.addEventListener('input', function() {
-            apellidoInput.value = apellidoInput.value.toUpperCase();
-        });
+        identificacionInput.addEventListener('blur', function () {
+            if (obtenerTipoIdentificacion() === 'rut') {
+                identificacionInput.value = formatearRut(
+                    identificacionInput.value
+                );
 
-        rutInput.addEventListener('input', function() {
-            const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
-            if (tipo === 'rut') {
-                if (!validarRut(rutInput.value)) {
-                    errorSpan.style.display = 'block';
-                    rutInput.classList.add('is-invalid');
-                } else {
-                    errorSpan.style.display = 'none';
-                    rutInput.classList.remove('is-invalid');
-                }
+                comprobarIdentificacion();
             } else {
-                errorSpan.style.display = 'none';
-                rutInput.classList.remove('is-invalid');
+                limpiarErrorRut();
             }
         });
 
-        rutInput.addEventListener('blur', function() {
-            const tipo = document.querySelector('input[name="identificacion_tipo"]:checked').value;
-            if (tipo === 'rut') {
-                rutInput.value = formatearRut(rutInput.value);
-            }
-        });
+        radiosTipo.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                // Al pasar a Pasaporte o N.º Registro se borra
+                // inmediatamente cualquier advertencia de RUT.
+                limpiarErrorRut();
 
-        document.querySelectorAll('input[name="identificacion_tipo"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                errorSpan.style.display = 'none';
-                rutInput.classList.remove('is-invalid');
+                if (this.value === 'rut') {
+                    comprobarIdentificacion();
+                }
             });
         });
+
+        if (nombreInput) {
+            nombreInput.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
+        if (apellidoInput) {
+            apellidoInput.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        }
     });
 </script>
