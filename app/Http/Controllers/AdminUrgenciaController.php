@@ -71,38 +71,53 @@ class AdminUrgenciaController extends Controller
         return view('admin.admin_urgencias.edit', compact('adminUrgencia'));
     }
 
+    // cambio 
     public function update(Request $request, $id)
     {
-        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
-        $adminUrgencia = AdminUrgencia::find($id);   
-
-        $usuario = User::findOrFail($id);
+        $request->merge([
+            'rut' => RutHelper::normalizar($request->rut),
+        ]);
+    
+        // Buscar el registro de administrador de urgencia
+        $adminUrgencia = AdminUrgencia::findOrFail($id);
+    
+        // Buscar el usuario vinculado mediante user_id
+        $usuario = User::findOrFail($adminUrgencia->user_id);
+    
         $request->validate([
-            'nombre' => 'required',
-            'apellido' => 'required',
-            'rut' => 'required|unique:admin_urgencias,rut,' . $adminUrgencia->id,
+            'nombre' => 'required|max:50',
+            'apellido' => 'required|max:50',
+            'rut' => [
+                'required',
+                'max:10',
+                'unique:admin_urgencias,rut,' . $adminUrgencia->id,
+                'unique:users,rut,' . $usuario->id,
+                new RutChileno,
+            ],
             'password' => 'nullable|min:8|confirmed',
         ]);
-       
-        //Actualiza los datos 
+    
+        // Actualizar perfil de administrador de urgencia
         $adminUrgencia->nombre = strtoupper($request->nombre);
         $adminUrgencia->apellido = strtoupper($request->apellido);
         $adminUrgencia->rut = $request->rut;
         $adminUrgencia->save();
-        
-        $usuario = User::find($adminUrgencia->user_id);
+    
+        // Actualizar cuenta de usuario vinculada
         $usuario->name = strtoupper($request->nombre);
         $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
-
-        if($request->filled('password')){
-            $usuario->password = Hash::make($request['password']);
+    
+        if ($request->filled('password')) {
+            $usuario->password = Hash::make($request->password);
         }
+    
         $usuario->save();
-
-        return redirect()->route('admin.admin_urgencias.index')
-            ->with('mensaje','Usuario Actualizado!')
-            ->with('icono','success');        
+    
+        return redirect()
+            ->route('admin.admin_urgencias.index')
+            ->with('mensaje', 'Usuario Actualizado!')
+            ->with('icono', 'success');
     }
 
     public function destroy($id)
