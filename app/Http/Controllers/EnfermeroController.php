@@ -79,41 +79,54 @@ class EnfermeroController extends Controller
     
     public function update(Request $request, $id)
     {
-        //Valida los datos del formulario de edición
-        //Busca el enfermero por ID y lanza una excepción si no se encuentra
-        //Actualiza los datos del enfermero y del usuario asociado
-        //Si se proporciona una nueva contraseña, la actualiza
-        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
-        $enfermero = Enfermero::find($id);
-
-        $usuario = User::findOrFail($id);
+        // Normalizar el RUT antes de validar
+        $request->merge([
+            'rut' => RutHelper::normalizar($request->rut),
+        ]);
+    
+        // Buscar el perfil del enfermero
+        $enfermero = Enfermero::findOrFail($id);
+    
+        // Buscar la cuenta de usuario vinculada mediante user_id
+        $usuario = User::findOrFail($enfermero->user_id);
+    
+        // Validar los datos
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => 'required|max:10|unique:enfermeros,rut,' . $enfermero->id,
+            'rut' => [
+                'required',
+                'max:10',
+                'unique:enfermeros,rut,' . $enfermero->id,
+                'unique:users,rut,' . $usuario->id,
+                new RutChileno,
+            ],
             'password' => 'nullable|min:8|confirmed',
-        ]);  
-
+        ]);
+    
+        // Actualizar datos del enfermero
         $enfermero->nombre = strtoupper($request->nombre);
         $enfermero->apellido = strtoupper($request->apellido);
         $enfermero->rut = $request->rut;
         $enfermero->save();
-
-        $usuario = User::find($enfermero->user_id);
+    
+        // Actualizar datos del usuario relacionado
         $usuario->name = strtoupper($request->nombre);
         $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
-        if($request->filled('password')) {
-            // Solo actualiza la contraseña si se ha proporcionado una nueva
-            $usuario->password = Hash::make($request['password']);
-        }        
-        $usuario->save();
-
-        return redirect()->route('admin.enfermeros.index')
-            ->with('mensaje', 'Datos actualizado exitosamente.')
-            ->with('icono','success');
-    }
     
+        // Actualizar la contraseña sólo si se ingresó una nueva
+        if ($request->filled('password')) {
+            $usuario->password = Hash::make($request->password);
+        }
+    
+        $usuario->save();
+    
+        return redirect()
+            ->route('admin.enfermeros.index')
+            ->with('mensaje', 'Datos actualizados exitosamente.')
+            ->with('icono', 'success');
+    }
     public function destroy($id)
     {
         //Elimina el enfermero y el usuario asociado
