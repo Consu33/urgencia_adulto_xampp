@@ -73,35 +73,50 @@ class AdminEnfermeroController extends Controller
     
     public function update(Request $request, $id)
     {
-        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
-        $adminEnfermero = AdminEnfermero::find($id);
-
-        $usuario = User::findOrFail($id);
+        $request->merge([
+            'rut' => RutHelper::normalizar($request->rut),
+        ]);
+    
+        // Buscar el perfil de administrador de enfermería
+        $adminEnfermero = AdminEnfermero::findOrFail($id);
+    
+        // Buscar la cuenta de usuario vinculada mediante user_id
+        $usuario = User::findOrFail($adminEnfermero->user_id);
+    
         $request->validate([
-            'nombre' => 'required',
-            'apellido' => 'required',
-            'rut' => 'required|unique:admin_enfermeros,rut,' . $adminEnfermero->id,
+            'nombre' => 'required|max:50',
+            'apellido' => 'required|max:50',
+            'rut' => [
+                'required',
+                'max:10',
+                'unique:admin_enfermeros,rut,' . $adminEnfermero->id,
+                'unique:users,rut,' . $usuario->id,
+                new RutChileno,
+            ],
             'password' => 'nullable|min:8|confirmed',
         ]);
-
+    
+        // Actualizar perfil de administrador de enfermería
         $adminEnfermero->nombre = strtoupper($request->nombre);
         $adminEnfermero->apellido = strtoupper($request->apellido);
         $adminEnfermero->rut = $request->rut;
         $adminEnfermero->save();
-
-        $usuario = User::find($adminEnfermero->user_id);
+    
+        // Actualizar cuenta de usuario vinculada
         $usuario->name = strtoupper($request->nombre);
         $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
-
-        if($request->filled('password')){
-            $usuario->password = Hash::make($request['password']);
+    
+        if ($request->filled('password')) {
+            $usuario->password = Hash::make($request->password);
         }
+    
         $usuario->save();
-
-        return redirect()->route('admin.admin_enfermeros.index')
-            ->with('mensaje','Usuario Actualizado!')
-            ->with('icono','success');  
+    
+        return redirect()
+            ->route('admin.admin_enfermeros.index')
+            ->with('mensaje', 'Usuario Actualizado!')
+            ->with('icono', 'success');
     }
     
     public function destroy($id)
