@@ -69,40 +69,52 @@ class AdmisionController extends Controller
         return view('admin.admisiones.edit', compact('admision'));
     }
 
-    //permite traer todo lo que esta en el formulario de edicion
     public function update(Request $request, $id)
     {
-        $request->merge(['rut' => RutHelper::normalizar($request->rut)]);
-        $admision = Admision::find($id);
-
-        $usuario = User::findOrFail($id);
+        $request->merge([
+            'rut' => RutHelper::normalizar($request->rut),
+        ]);
+    
+        // Buscar el perfil de admisión
+        $admision = Admision::findOrFail($id);
+    
+        // Buscar la cuenta de usuario vinculada mediante user_id
+        $usuario = User::findOrFail($admision->user_id);
+    
         $request->validate([
             'nombre' => 'required|max:50',
             'apellido' => 'required|max:50',
-            'rut' => 'required|unique:admisions,rut,' . $admision->id,
+            'rut' => [
+                'required',
+                'max:10',
+                'unique:admisions,rut,' . $admision->id,
+                'unique:users,rut,' . $usuario->id,
+                new RutChileno,
+            ],
             'password' => 'nullable|min:8|confirmed',
         ]);
-
-        //Actualiza los datos de la admision
+    
+        // Actualizar perfil de admisión
         $admision->nombre = strtoupper($request->nombre);
         $admision->apellido = strtoupper($request->apellido);
-        $admision->rut = $request->rut;        
+        $admision->rut = $request->rut;
         $admision->save();
-
-        $usuario = User::find($admision->user_id);
-        $usuario->name = strtoupper($request->name);
+    
+        // Actualizar usuario relacionado
+        $usuario->name = strtoupper($request->nombre);
         $usuario->apellido = strtoupper($request->apellido);
         $usuario->rut = $request->rut;
-
-        if($request->filled('password')){
-            // Solo actualiza la contraseña si se ha proporcionado una nueva
-            $usuario->password = Hash::make($request['password']);
-        }        
+    
+        if ($request->filled('password')) {
+            $usuario->password = Hash::make($request->password);
+        }
+    
         $usuario->save();
-
-        return redirect()->route('admin.admisiones.index')
-        ->with('mensaje','Registro Actualizado!')
-        ->with('icono','success');
+    
+        return redirect()
+            ->route('admin.admisiones.index')
+            ->with('mensaje', 'Registro Actualizado!')
+            ->with('icono', 'success');
     }
 
     public function destroy($id){
